@@ -1,0 +1,26 @@
+{
+  "name": "json-validator",
+  "version": "0.0.1",
+  "description": "Validates JSON against a schema",
+  "main": "app.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "clear && nodeunit ./tests/*"
+  },
+  "repository": "",
+  "keywords": [
+    "json",
+    "schema",
+    "validation"
+  ],
+  "author": "Gammasoft Desenvolvimento de Software Ltda <contact@gammasoft.com.br>",
+  "license": "MIT",
+  "dependencies": {
+    "traverse": "~0.6.6"
+  },
+  "devDependencies": {
+    "nodeunit": "~0.8.1"
+  }
+}
