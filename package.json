@@ -1,6 +1,6 @@
 {
   "name": "json-validator",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Validates JSON against a schema",
   "main": "app.js",
   "directories": {
@@ -9,7 +9,10 @@
   "scripts": {
     "test": "clear && nodeunit ./tests/*"
   },
-  "repository": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gammasoft/json-validator.git"
+  },
   "keywords": [
     "json",
     "schema",

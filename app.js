@@ -31,6 +31,8 @@ function validate(object, schema, path, messages, debug){
 		},
 		
 		minLength: function(minLength, string, objectPath, messages){
+			if ( typeof string === "undefined" ) return false;
+			
 			var match = string.length >= minLength;
 			
 			if( !match )
@@ -40,6 +42,8 @@ function validate(object, schema, path, messages, debug){
 		},
 		
 		maxLength: function(maxLength, string, objectPath, messages){
+			if ( typeof string === "undefined" ) return false;
+			
 			var match = string.length <= maxLength;
 			
 			if( !match )
@@ -49,6 +53,8 @@ function validate(object, schema, path, messages, debug){
 		},
 		
 		length: function(length, string, objectPath, messages){
+			if ( typeof string === "undefined" ) return false;
+			
 			var match = string.length === length;
 			
 			if( !match )
