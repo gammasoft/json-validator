@@ -1,7 +1,7 @@
 var jsvalidator = require("../app");
 
 module.exports = {
-	"Single test": function(test){
+	"Single test": function( test ){
 		var schema = {
 			name: { type: "string", required: true },
 			age: { type: "number", required: true }
@@ -9,11 +9,11 @@ module.exports = {
 		
 		var object = { name: "Renato", age: 26 };
 		
-		test.ok(jsvalidator(object, schema, true).length === 0);
+		test.ok(jsvalidator(object, schema, false).length === 0);
 		test.done();
 	},
 	
-	"Single test missing required field": function(test){
+	"Single test missing required field": function( test ){
 		var schema = {
 			name: { type: "string", required: true },
 			age: { type: "number", required: true }
@@ -21,11 +21,11 @@ module.exports = {
 		
 		var object = { age: 26 };
 		
-		test.ok(jsvalidator(object, schema, true).indexOf("name is required but was either undefined or null") !== -1);
+		test.ok(jsvalidator(object, schema, false).indexOf("name is required but was either undefined or null") !== -1);
 		test.done();
 	},
 	
-	"Single test with type mismatch": function(test){
+	"Single test with type mismatch": function( test ){
 		var schema = {
 			name: { type: "string", required: true },
 			age: { type: "number", required: true }
@@ -33,44 +33,44 @@ module.exports = {
 		
 		var object = { name: 1, age: 26 };
 		
-		test.ok(jsvalidator(object, schema, true).indexOf("name is not of type string") !== -1);
+		test.ok(jsvalidator(object, schema, false).indexOf("name is not of type string") !== -1);
 		test.done();
 	},
 	
-	"Single test with type date": function(test){
+	"Single test with type date": function( test ){
 		var schema = {
 			value: { type: "date", required: true },
 		};
 		
 		var object = { value: new Date() };
 		
-		test.ok(jsvalidator(object, schema, true).length === 0);
+		test.ok(jsvalidator(object, schema, false).length === 0);
 		test.done();
 	},
 	
-	"Single test with type date failing": function(test){
+	"Single test with type date failing": function( test ){
 		var schema = {
 			value: { type: "date", required: true },
 		};
 		
 		var object = { value: "zumba" };
 		
-		test.ok(jsvalidator(object, schema, true).indexOf("value is not of type date") !== -1);
+		test.ok(jsvalidator(object, schema, false).indexOf("value is not of type date") !== -1);
 		test.done();
 	},
 	
-	"Single test with type regexp": function(test){
+	"Single test with type regexp": function( test ){
 		var schema = {
 				value: { type: "regexp", required: true },
 		};
 		
 		var object = { value: "zuffa" };
 		
-		test.ok(jsvalidator(object, schema, true).indexOf("value is not of type regexp") !== -1);
+		test.ok(jsvalidator(object, schema, false).indexOf("value is not of type regexp") !== -1);
 		test.done();
 	},
 	
-	"Test with nested object": function(test){
+	"Test with nested object": function( test ){
 		var schema = {
 			name: {
 				first: { type: "string" },
@@ -81,11 +81,11 @@ module.exports = {
 		
 		var object = { name: { first: "Renato", last: "Gama" }, age: 26 };
 		
-		test.ok(jsvalidator(object, schema, true).length === 0);
+		test.ok(jsvalidator(object, schema, false).length === 0);
 		test.done();
 	},
 	
-	"Test with nested object missing required field": function(test){
+	"Test with nested object missing required field": function( test ){
 		var schema = {
 			name: {
 				first: { type: "string", required: true },
@@ -96,11 +96,11 @@ module.exports = {
 		
 		var object = { name: { last: "Gama" }, age: 26 };
 		
-		test.ok(jsvalidator(object, schema, true).indexOf("name.first is required but was either undefined or null") !== -1);
+		test.ok(jsvalidator(object, schema, false).indexOf("name.first is required but was either undefined or null") !== -1);
 		test.done();
 	},
 	
-	"Test with array of objects": function(test){
+	"Test with array of objects": function( test ){
 		var schema = {
 			name: { type: "string", required: true },
 			age: { type: "number", required: true },
@@ -112,22 +112,22 @@ module.exports = {
 		
 		var object = { name: "Renato", age: 26, pets: [{ name: "Chevete", kind: "horse" }, { name: "Adam", kind: "dog" }] };
 		
-		test.ok(jsvalidator(object, schema, true).length === 0);
+		test.ok(jsvalidator(object, schema, false).length === 0);
 		test.done();
 	},
 	
-	"Check that arrays can be empty": function(test){
+	"Check that arrays can be empty": function( test ){
 		var schema = {
 			colors: [{ type: "string" }]
 		};
 		
 		var object = { colors: [] };
 		
-		test.ok(jsvalidator(object, schema, true).length === 0);
+		test.ok(jsvalidator(object, schema, false).length === 0);
 		test.done();
 	},
 	
-	"Test with array of objects with missing fields": function(test){
+	"Test with array of objects with missing fields": function( test ){
 		var schema = {
 			name: { type: "string", required: true },
 			age: { type: "number", required: true },
@@ -139,13 +139,13 @@ module.exports = {
 		
 		var object = { name: "Renato", age: 26, pets: [{ name: "Chevete" }, { name: "Adam", kind: "dog" }] };
 		
-		var message = jsvalidator(object, schema, true);
+		var message = jsvalidator(object, schema, false);
 		
 		test.ok(message.indexOf("pets.0.kind is required but was either undefined or null") !== -1);
 		test.done();
 	},
 	
-	"Test with a more complex structure": function(test){
+	"Test with a more complex structure": function( test ){
 		var schema = {
 			person: {
 				name: { 
@@ -182,13 +182,13 @@ module.exports = {
 			}
 		};
 		
-		var message = jsvalidator(object, schema, true);
+		var message = jsvalidator(object, schema, false);
 		
 		test.ok(message.length === 0);
 		test.done();
 	},
 	
-	"Test with a more complex structure and some fields missing": function(test){
+	"Test with a more complex structure and some fields missing": function( test ){
 		var schema = {
 			person: {
 				name: { 
@@ -224,14 +224,14 @@ module.exports = {
 			}
 		};
 		
-		var message = jsvalidator(object, schema, true);
+		var message = jsvalidator(object, schema, false);
 		
 		test.ok(message.indexOf("person.age is required but was either undefined or null") !== -1);
 		test.ok(message.indexOf("person.pets.0.toys.0 is required but was either undefined or null") !== -1);
 		test.done();
 	},
 	
-	"Single test with custom validation function failing": function(test){
+	"Single test with custom validation function failing": function( test ){
 		function mustContainMyName(name, path){
 			return { 
 				isValid: typeof name !== "undefined" && name.indexOf("Renato") !== -1, 
@@ -245,13 +245,13 @@ module.exports = {
 		
 		var object = { name: "Foo Bar" };
 		
-		var messages = jsvalidator(object, schema, true);
+		var messages = jsvalidator(object, schema, false);
 		
 		test.ok(messages.indexOf("name must be defined and contain the string 'Renato'") !== -1);
 		test.done();
 	},
 	
-	"Single test with custom validation function": function(test){
+	"Single test with custom validation function": function( test ){
 		function mustContainMyName(name, path){
 			return { 
 				isValid: typeof name !== "undefined" && name.indexOf("Renato") !== -1, 
@@ -265,13 +265,13 @@ module.exports = {
 		
 		var object = { name: "Renato" };
 		
-		var messages = jsvalidator(object, schema, true);
+		var messages = jsvalidator(object, schema, false);
 		
 		test.ok(messages.length === 0);
 		test.done();
 	},
 	
-	"Single test with custom validation default message": function(test){
+	"Single test with custom validation default message": function( test ){
 		function mustContainMyName(name, path){
 			return { 
 				isValid: typeof name !== "undefined" && name.indexOf("Renato") !== -1
@@ -284,119 +284,155 @@ module.exports = {
 		
 		var object = { name: "Foo Bar" };
 		
-		var messages = jsvalidator(object, schema, true);
+		var messages = jsvalidator(object, schema, false);
 		
 		test.ok(messages.indexOf("name invalid accoding to custom validator") !== -1);
 		test.done();
 	},
 	
-	"Single test with length validator": function(test){
+	"Single test with length validator": function( test ){
 		var schema = {
 			color: { type: "string", length: 5, required: true },
 		};
 		
 		var object = { color: "green" };
 		
-		test.ok(jsvalidator(object, schema, true).length === 0);
+		test.ok(jsvalidator(object, schema, false).length === 0);
 		test.done();
 	},
 	
-	"Single test with length validator failing": function(test){
+	"Single test with length validator failing": function( test ){
 		var schema = {
 			color: { type: "string", length: 5, required: true },
 		};
 		
 		var object = { color: "red" };
 		
-		test.ok(jsvalidator(object, schema, true).indexOf("color must have exact length of 5") !== -1);
+		test.ok(jsvalidator(object, schema, false).indexOf("color must have exact length of 5") !== -1);
 		test.done();
 	},
 	
-	"Single test with minLength validator": function(test){
+	"Single test with minLength validator": function( test ){
 		var schema = {
 			color: { type: "string", minLength: 5, required: true },
 		};
 		
 		var object = { color: "greenish black" };
 		
-		test.ok(jsvalidator(object, schema, true).length === 0);
+		test.ok(jsvalidator(object, schema, false).length === 0);
 		test.done();
 	},
 	
-	"Single test with minLength validator failing": function(test){
+	"Single test with minLength validator failing": function( test ){
 		var schema = {
 			color: { type: "string", minLength: 5, required: true },
 		};
 		
 		var object = { color: "red" };
 		
-		test.ok(jsvalidator(object, schema, true).indexOf("color must have length greater or equal 5") !== -1);
+		test.ok(jsvalidator(object, schema, false).indexOf("color must have length greater or equal 5") !== -1);
 		test.done();
 	},
 	
-	"Single test with maxLength validator": function(test){
+	"Single test with maxLength validator": function( test ){
 		var schema = {
 			color: { type: "string", maxLength: 5, required: true },
 		};
 		
 		var object = { color: "red" };
 		
-		test.ok(jsvalidator(object, schema, true).length === 0);
+		test.ok(jsvalidator(object, schema, false).length === 0);
 		test.done();
 	},
 	
-	"Single test with maxLength validator failing": function(test){
+	"Single test with maxLength validator failing": function( test ){
 		var schema = {
 			color: { type: "string", maxLength: 5, required: true },
 		};
 		
 		var object = { color: "redish yellow" };
 		
-		test.ok(jsvalidator(object, schema, true).indexOf("color must have length lesser or equal 5") !== -1);
+		test.ok(jsvalidator(object, schema, false).indexOf("color must have length lesser or equal 5") !== -1);
 		test.done();
 	},
 	
-	"Single test with min validator": function(test){
+	"Single test with min validator": function( test ){
 		var schema = {
 			value: { type: "number", min: 5, required: true },
 		};
 		
 		var object = { value: 5 };
 		
-		test.ok(jsvalidator(object, schema, true).length === 0);
+		test.ok(jsvalidator(object, schema, false).length === 0);
 		test.done();
 	},
 	
-	"Single test with min validator failing": function(test){
+	"Single test with min validator failing": function( test ){
 		var schema = {
 			value: { type: "number", min: 5, required: true },
 		};
 		
 		var object = { value: 4 };
 		
-		test.ok(jsvalidator(object, schema, true).indexOf("value must be greater or equals (min) 5") !== -1);
+		test.ok(jsvalidator(object, schema, false).indexOf("value must be greater or equals (min) 5") !== -1);
 		test.done();
 	},
 	
-	"Single test with max validator": function(test){
+	"Single test with max validator": function( test ){
 		var schema = {
 			value: { type: "number", max: 5, required: true },
 		};
 		
 		var object = { value: 5 };
 		
-		test.ok(jsvalidator(object, schema, true).length === 0);
+		test.ok(jsvalidator(object, schema, false).length === 0);
 		test.done();
 	},
 	
-	"Single test with max validator failing": function(test){
+	"Single test with max validator failing": function( test ){
 		var schema = {
 			value: { type: "number", max: 5, required: true },
 		};
 		
 		var object = { value: 6 };
 		
-		test.ok(jsvalidator(object, schema, true).indexOf("value must be lesser or equals (max) 5") !== -1);
+		test.ok(jsvalidator(object, schema, false).indexOf("value must be lesser or equals (max) 5") !== -1);
 		test.done();
 	},
+	
+	"Single test with optional embedded object": function( test ) {
+		var schema = {
+			iAmOptional: {
+				value: {
+					type: "string",
+					required: true
+				}
+			}
+		};
+		
+		var object = { },
+			optionals = [ "iAmOptional" ];
+		
+		test.ok(jsvalidator(object, schema, optionals, false).length === 0);
+		test.done();
+	},
+	
+	"Single test with optional embedded object with required field missing": function( test ) {
+		var schema = {
+			iAmOptional: {
+				value: {
+					type: "string",
+					required: true
+				}
+			}
+		};
+		
+		var object = {
+			value: null
+		}, 
+		optionals = [ "iAmOptional" ];
+		
+		test.ok(jsvalidator(object, schema, optionals, true).indexOf("iAmOptional.value is required but was either undefined or null") !== -1);
+		test.done();
+	}
 };

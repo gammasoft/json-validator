@@ -2,15 +2,24 @@ var
 	matchers = require("./matchers"),
 	traverse = require("traverse");
 
-module.exports = function(object, schema, debug){
+module.exports = function(object, schema, optionals, debug){
+	if ( typeof optionals === "undefined" ) {
+		optionals = [];
+	}
+	
+	if ( typeof optionals === "boolean" ) {
+		optionals = [];
+		debug = false;
+	}
+	
 	if ( typeof debug === "undefined" ) {
 		debug = false;
 	}
 		
-	return validate(object, schema, "", [], debug);
+	return validate(object, schema, "", [], optionals, debug);
 };
 
-function validate(object, schema, path, messages, debug){
+function validate(object, schema, path, messages, optionals, debug){
 	
 	object = traverse( object );
 	
@@ -46,7 +55,7 @@ function validate(object, schema, path, messages, debug){
 		
 		var matcherMethod = this.path.pop();
 		
-		var match = matchers[matcherMethod]( node, objectValue, objectPath.join("."), messages );
+		var match = matchers[matcherMethod]( node, objectValue, objectPath.join("."), messages, optionals );
 		
 		if ( debug ) console.log(this.path.join(".") + "." + matcherMethod + " === " + node + " | " + objectValue + " >>> " + match);
 	});
