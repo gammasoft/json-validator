@@ -37,6 +37,39 @@ module.exports = {
 		test.done();
 	},
 	
+	"Single test with type date": function(test){
+		var schema = {
+			value: { type: "date", required: true },
+		};
+		
+		var object = { value: new Date() };
+		
+		test.ok(jsvalidator(object, schema, true).length === 0);
+		test.done();
+	},
+	
+	"Single test with type date failing": function(test){
+		var schema = {
+			value: { type: "date", required: true },
+		};
+		
+		var object = { value: "zumba" };
+		
+		test.ok(jsvalidator(object, schema, true).indexOf("value is not of type date") !== -1);
+		test.done();
+	},
+	
+	"Single test with type regexp": function(test){
+		var schema = {
+				value: { type: "regexp", required: true },
+		};
+		
+		var object = { value: "zuffa" };
+		
+		test.ok(jsvalidator(object, schema, true).indexOf("value is not of type regexp") !== -1);
+		test.done();
+	},
+	
 	"Test with nested object": function(test){
 		var schema = {
 			name: {

@@ -1,4 +1,7 @@
-var traverse = require("traverse");
+var 
+	traverse = require("traverse"),
+	util = require("util");
+
 
 module.exports = function(object, schema, debug){
 	if ( typeof debug === "undefined" ) {
@@ -13,7 +16,13 @@ function validate(object, schema, path, messages, debug){
 		type: function(type, object, objectPath, messages){
 			if ( typeof object === "undefined" ) return;
 			
-			var match = typeof object === type;
+			var match = null;
+			if( type === "date" )
+				match = util.isDate(object);
+			else if( type === "regexp" )
+				match = util.isRegExp(object);
+			else
+				match = typeof object === type;
 			
 			if( !match )
 				messages.push(objectPath + " is not of type " + type);
@@ -129,6 +138,8 @@ function validate(object, schema, path, messages, debug){
 		
 		if ( debug ) console.log(this.path.join(".") + "." + matcherMethod + " === " + node + " | " + objectValue + " >>> " + match);
 	});
+	
+	if( debug ) console.log( messages );
 	
 	return messages;
 }
