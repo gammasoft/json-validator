@@ -428,11 +428,170 @@ module.exports = {
 		};
 		
 		var object = {
-			value: null
+			iAmOptional: {
+				value: null
+			}
 		}, 
 		optionals = [ "iAmOptional" ];
 		
-		test.ok(jsvalidator(object, schema, optionals, true).indexOf("iAmOptional.value is required but was either undefined or null") !== -1);
+		test.ok(jsvalidator(object, schema, optionals, false).indexOf("iAmOptional.value is required but was either undefined or null") !== -1);
 		test.done();
-	}
+	},
+	
+	
+	
+	"More complex test with optional objects": function( test ) {
+		
+		var schema = {
+			name: {
+				type: "string",
+				required: true
+			},
+
+			address: {
+				street: {
+					type: "string",
+					required: true
+				},
+				city: {
+					type: "string",
+					required: true
+				}
+			}
+		};
+		
+		var optionals = ["address"];
+		
+		var object = {
+			name: "Renato Gama"
+		};
+		
+		test.ok(jsvalidator(object, schema, optionals, false).length === 0);
+		test.done();
+	},
+	
+	"More complex test with optional object filled": function( test ) {
+		
+		var schema = {
+			name: {
+				type: "string",
+				required: true
+			},
+
+			address: {
+				street: {
+					type: "string",
+					required: true
+				},
+				city: {
+					type: "string",
+					required: true
+				}
+			}
+		};
+		
+		var optionals = ["address"];
+		
+		var object = {
+			name: "Renato Gama",
+			address: {
+				street: "Av. Paulista",
+				city: "São Paulo"
+			}
+		};
+		
+		test.ok(jsvalidator(object, schema, optionals, false).length === 0);
+		test.done();
+	},
+	
+	"More complex test with optional object missing required field": function( test ) {
+		
+		var schema = {
+			name: {
+				type: "string",
+				required: true
+			},
+
+			address: {
+				street: {
+					type: "string",
+					required: true
+				},
+				city: {
+					type: "string",
+					required: true
+				}
+			}
+		};
+		
+		var optionals = ["address"];
+		
+		var object = {
+			name: "Renato Gama",
+			address: {
+				city: "São Paulo"
+			}
+		};
+		
+		test.ok(jsvalidator(object, schema, optionals, false).indexOf("address.street is required but was either undefined or null") !== -1);
+		test.done();
+	},
+	
+	"More complex test with optional objects 2": function( test ) {
+		
+		var schema = {
+			name: {
+				type: "string",
+				required: true
+			},
+
+			friends: [{
+				name: {
+					type: "string",
+					required: true
+				},
+				colors: [{
+					type: "string"
+				}]
+			}],
+			
+			address: {
+				street: {
+					type: "string",
+					required: true
+				},
+				city: {
+					type: "string",
+					required: true
+				}
+			}
+		};
+		
+		var optionals = ["address", "friends"];
+		
+		var object = {
+			name: "Renato Gama",
+			address: {
+				street: "Av. Paulista",
+				city: "São Paulo"
+			}
+		};
+		
+		test.ok(jsvalidator(object, schema, optionals, false).length === 0);
+		
+		
+		var object2 = {
+			name: "Renato",
+			friends: [{
+				name: "Geraldo",
+				colors: ["pink", "red"]
+			}, {
+				colors: ["pink", "red"]
+			}]
+		};
+		
+		test.ok(jsvalidator(object2, schema, optionals, false).indexOf("friends.1.name is required but was either undefined or null") !== -1);
+		test.done();
+	},
+
 };

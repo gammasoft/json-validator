@@ -25,6 +25,9 @@ function validate(object, schema, path, messages, optionals, debug){
 	
 	traverse( schema ).forEach(function( node ) {
 		if ( !Array.isArray(node) ) return;
+		//para implementar os defaults, a cada elemento que chegar aqui eu pego
+		//o this.parent.parent, verifico se tem type e required, 
+		//se nao tiver eu adiciono os valores default
 		
 		var array = object.get(this.path);
 		if ( typeof array === "undefined") return;
@@ -52,6 +55,11 @@ function validate(object, schema, path, messages, optionals, debug){
 		objectPath.pop();
 
 		var objectValue = object.get( objectPath );
+
+		//didn't find, parent is listed as optional and parent also was not found
+		if(!objectValue && this.parent && this.parent.parent && find( optionals, this.parent.parent.path.join(".")) && !object.get(this.parent.parent.path) ) {
+			return;
+		}
 		
 		var matcherMethod = this.path.pop();
 		
@@ -63,4 +71,14 @@ function validate(object, schema, path, messages, optionals, debug){
 	if( debug ) console.log( messages );
 	
 	return messages;
+}
+
+function find( array, term ) {
+	var found = false;
+	array.forEach( function( element ) {
+		if(term.indexOf(element) !== -1)
+			found = true;
+	});
+	
+	return found;
 }

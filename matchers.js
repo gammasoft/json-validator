@@ -1,18 +1,6 @@
 var 
 	util = require("util");
 
-function find( array, term ) {
-	var found = false;
-	array.forEach( function( element ) {
-		console.log(" >>> '" + term + "' tem '" + element + "'?");
-		
-		if(term.indexOf(element) !== -1)
-			found = true;
-	});
-	
-	return found;
-}
-
 module.exports = {
 	type: function(type, object, objectPath, messages){
 		if ( typeof object === "undefined" ) return;
@@ -34,7 +22,7 @@ module.exports = {
 	required: function(required, object, objectPath, messages, optionals){
 		var match = (required && (typeof object !== "undefined" && object !== null));
 		
-		if( !match && !find( optionals, objectPath ))
+		if( !match )
 			messages.push(objectPath + " is required but was either undefined or null");
 		
 		return match;
