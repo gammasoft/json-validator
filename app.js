@@ -24,10 +24,13 @@ function validate(object, schema, path, messages, optionals, debug){
 	object = traverse( object );
 	
 	traverse( schema ).forEach(function( node ) {
-		if ( !Array.isArray(node) ) return;
 		//para implementar os defaults, a cada elemento que chegar aqui eu pego
 		//o this.parent.parent, verifico se tem type e required, 
 		//se nao tiver eu adiciono os valores default
+		
+		//verificar se for um object vazio
+		
+		if ( !Array.isArray(node) ) return;
 		
 		var array = object.get(this.path);
 		if ( typeof array === "undefined") return;
@@ -63,7 +66,10 @@ function validate(object, schema, path, messages, optionals, debug){
 		
 		var matcherMethod = this.path.pop();
 		
-		var match = matchers[matcherMethod]( node, objectValue, objectPath.join("."), messages, optionals );
+		if(matchers[matcherMethod])
+			var match = matchers[matcherMethod]( node, objectValue, objectPath.join("."), messages, optionals );
+		else
+			process.stdout.write("json-validator: Warning: validator '" + matcherMethod + "' was not found. Skipping!");
 		
 		if ( debug ) console.log(this.path.join(".") + "." + matcherMethod + " === " + node + " | " + objectValue + " >>> " + match);
 	});
