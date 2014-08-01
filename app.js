@@ -1,24 +1,28 @@
-var matchers = require("./matchers"),
-    traverse = require("traverse");
+var traverse = require('traverse'),
+    extend = require('extend'),
+
+    matchers = require('./matchers');
 
 module.exports = function(object, schema, optionals, debug){
-    if ( typeof optionals === "undefined" ) {
+    if ( typeof optionals === 'undefined' ) {
         optionals = [];
     }
 
-    if ( typeof optionals === "boolean" ) {
+    if ( typeof optionals === 'boolean' ) {
         optionals = [];
         debug = false;
     }
 
-    if ( typeof debug === "undefined" ) {
+    if ( typeof debug === 'undefined' ) {
         debug = false;
     }
 
-    return validate(object, schema, "", [], optionals, debug);
+    return validate(object, schema, '', [], optionals, debug);
 };
 
-function validate(object, schema, path, messages, optionals, debug){
+function validate(object, _schema, path, messages, optionals, debug){
+
+    var schema = extend(true, {}, _schema);
 
     object = traverse(object);
 
@@ -35,7 +39,7 @@ function validate(object, schema, path, messages, optionals, debug){
 
         var array = object.get(this.path);
 
-        if(typeof array === "undefined") {
+        if(typeof array === 'undefined') {
         	return;
         }
 
@@ -60,8 +64,15 @@ function validate(object, schema, path, messages, optionals, debug){
     }
 
     traverse(schema).forEach(function(node){
-        if(typeof node === "object") {
-        	return;
+        if(this.parent && this.parent.key === 'enum') {
+            //se o pai é um enum, não continue
+            return;
+        }
+
+        var isEnum = Array.isArray(node) && this.key === 'enum';
+
+        if(typeof node === "object" && !isEnum) {
+           return;
         }
 
         var objectPath = traverse.clone(this.path);

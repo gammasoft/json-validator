@@ -637,5 +637,42 @@ module.exports = {
 		test.equal(object.pets[0].name, 'CHEVETE');
 		test.equal(object.pets[1].name, 'ADAM');
 		test.done();
-	}
+	},
+
+	"Single test with enum": function( test ){
+		var schema = {
+			fruit: {
+				type: "string",
+				required: true ,
+				enum: ['banana', 'apple']
+			}
+		};
+
+		test.ok(jsvalidator({ fruit: 'banana' }, schema).length === 0);
+		test.ok(jsvalidator({ fruit: 'apple' }, schema).length === 0);
+		test.ok(jsvalidator({ fruit: 'orange' }, schema).length === 1);
+		test.done();
+	},
+
+	"Single test with enum inside an array": function( test ){
+		var schema = {
+			fruit: [{
+				type: "string",
+				required: true ,
+				enum: ['banana', 'apple', 'orange']
+			}]
+		};
+
+		test.ok(jsvalidator({ fruit: ['banana', 'apple', 'orange', 'watermelon'] }, schema).length === 1);
+		test.ok(jsvalidator({ fruit: ['banana', 'apple', 'watermelon'] }, schema).length === 1);
+		test.ok(jsvalidator({ fruit: ['banana', 'watermelon'] }, schema).length === 1);
+		test.ok(jsvalidator({ fruit: ['watermelon'] }, schema).length === 1);
+
+		test.ok(jsvalidator({ fruit: ['banana', 'apple', 'orange'] }, schema).length === 0);
+		test.ok(jsvalidator({ fruit: ['banana', 'apple'] }, schema).length === 0);
+		test.ok(jsvalidator({ fruit: ['orange', 'banana'] }, schema).length === 0);
+		test.ok(jsvalidator({ fruit: ['banana'] }, schema).length === 0);
+
+		test.done();
+	},
 };
