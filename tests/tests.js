@@ -13,7 +13,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Singletestmissing required field": function(test){
+	"Single test missing required field": function(test){
 		var schema = {
 			name: { type: "string", required: true },
 			age: { type: "number", required: true }
@@ -796,6 +796,60 @@ module.exports = {
 		test.equal(object2.safeHtml, '&lt;div style=&quot;someCss: true&quot; /&gt;&amp;nbsp;');
 
 		test.done();
-	}
+	},
 
+	"Can use transform method to assign default value": function(test) {
+		var schema = {
+			name: {
+				transform: function(value, messages) {
+					if(typeof value === 'undefined') {
+						return 'FOO';
+					}
+
+					return value;
+				}
+			}
+		};
+
+		var object1 = {},
+			object2 = { name: 'BAR' };
+
+		test.equal(jsvalidator(object1, schema).length, 0);
+		test.equal(object1.name, 'FOO');
+
+		test.equal(jsvalidator(object2, schema).length, 0);
+		test.equal(object2.name, 'BAR');
+
+		test.done();
+	},
+
+	"Can assign default value": function(test) {
+		var schema = {
+			name: {
+				default: 'not specified'
+			}
+		};
+
+		var object = {};
+
+		test.equal(jsvalidator(object, schema).length, 0);
+		test.equal(object.name, 'not specified');
+		test.done();
+	},
+
+	"Can use a function to assing default value": function(test) {
+		var schema = {
+			creationDate: {
+				default: function() {
+					return 'now!';
+				}
+			}
+		};
+
+		var object = {};
+
+		test.equal(jsvalidator(object, schema).length, 0);
+		test.equal(object.creationDate, 'now!');
+		test.done();
+	}
 };

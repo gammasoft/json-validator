@@ -97,7 +97,7 @@ function validate(object, _schema, path, messages, optionals, debug){
         if(matchers[matcherMethod]) {
             var match = matchers[matcherMethod](node, objectValue, objectPath.join("."), messages, optionals);
 
-            if(matcherMethod === 'transform') {
+            if(['transform', 'default'].indexOf(matcherMethod) > -1) {
             	//Aqui eu posso salvar o objectPath junto com o valor transformado,
             	//e depois só aplicar se não houverem mensagens.
             	//Neste caso as transformações são aplicadas independente de estar valido ou não

@@ -117,6 +117,18 @@ module.exports = {
 		return fn(object);
 	},
 
+	default: function(defaultValue, currentValue, objectPath, messages) {
+		if(typeof currentValue === 'undefined') {
+			if(typeof defaultValue === 'function') {
+				return defaultValue();
+			}
+
+			return defaultValue;
+		}
+
+		return currentValue;
+	},
+
 	enum: function(allowedValues, value, objectPath, messages) {
 		if(allowedValues.indexOf(value) === -1) {
 			messages.push(objectPath + ' invalid: the value "' + value + '" is not allowed. Allowed values are: ' + allowedValues.join(', '));
