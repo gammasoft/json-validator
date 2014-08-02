@@ -1,7 +1,7 @@
 var jsvalidator = require("../app");
 
 module.exports = {
-	"Single test": function( test ){
+	"Single test": function(test){
 		var schema = {
 			name: { type: "string", required: true },
 			age: { type: "number", required: true }
@@ -13,7 +13,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Single test missing required field": function( test ){
+	"Singletestmissing required field": function(test){
 		var schema = {
 			name: { type: "string", required: true },
 			age: { type: "number", required: true }
@@ -25,7 +25,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Single test with type mismatch": function( test ){
+	"Singletestwith type mismatch": function(test){
 		var schema = {
 			name: { type: "string", required: true },
 			age: { type: "number", required: true }
@@ -37,7 +37,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Single test with type date": function( test ){
+	"Singletestwith type date": function(test){
 		var schema = {
 			value: { type: "date", required: true },
 		};
@@ -48,7 +48,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Single test with type date failing": function( test ){
+	"Singletestwith type date failing": function(test){
 		var schema = {
 			value: { type: "date", required: true },
 		};
@@ -59,7 +59,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Single test with type regexp": function( test ){
+	"Singletestwith type regexp": function(test){
 		var schema = {
 				value: { type: "regexp", required: true },
 		};
@@ -70,7 +70,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Test with nested object": function( test ){
+	"Test with nested object": function(test){
 		var schema = {
 			name: {
 				first: { type: "string" },
@@ -85,7 +85,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Test with nested object missing required field": function( test ){
+	"Test with nested object missing required field": function(test){
 		var schema = {
 			name: {
 				first: { type: "string", required: true },
@@ -100,7 +100,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Test with array of objects": function( test ){
+	"Test with array of objects": function(test){
 		var schema = {
 			name: { type: "string", required: true },
 			age: { type: "number", required: true },
@@ -116,7 +116,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Check that arrays can be empty": function( test ){
+	"Check that arrays can be empty": function(test){
 		var schema = {
 			colors: [{ type: "string" }]
 		};
@@ -127,7 +127,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Test with array of objects with missing fields": function( test ){
+	"Test with array of objects with missing fields": function(test){
 		var schema = {
 			name: { type: "string", required: true },
 			age: { type: "number", required: true },
@@ -145,7 +145,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Test with a more complex structure": function( test ){
+	"Test with a more complex structure": function(test){
 		var schema = {
 			person: {
 				name: {
@@ -188,7 +188,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Test with a more complex structure and some fields missing": function( test ){
+	"Test with a more complex structure and some fields missing": function(test){
 		var schema = {
 			person: {
 				name: {
@@ -231,7 +231,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Single test with custom validation function failing": function( test ){
+	"Singletestwith custom validation function failing": function(test){
 		function mustContainMyName(name, path){
 			return {
 				isValid: typeof name !== "undefined" && name.indexOf("Renato") !== -1,
@@ -251,7 +251,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Single test with custom validation function": function( test ){
+	"Singletestwith custom validation function": function(test){
 		function mustContainMyName(name, path){
 			return {
 				isValid: typeof name !== "undefined" && name.indexOf("Renato") !== -1,
@@ -271,7 +271,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Single test with custom validation default message": function( test ){
+	"Singletestwith custom validation default message": function(test){
 		function mustContainMyName(name, path){
 			return {
 				isValid: typeof name !== "undefined" && name.indexOf("Renato") !== -1
@@ -290,7 +290,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Single test with length validator": function( test ){
+	"Singletestwith length validator": function(test){
 		var schema = {
 			color: { type: "string", length: 5, required: true },
 		};
@@ -301,7 +301,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Single test with length validator failing": function( test ){
+	"Singletestwith length validator failing": function(test){
 		var schema = {
 			color: { type: "string", length: 5, required: true },
 		};
@@ -312,7 +312,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Single test with minLength validator": function( test ){
+	"Singletestwith minLength validator": function(test){
 		var schema = {
 			color: { type: "string", minLength: 5, required: true },
 		};
@@ -323,7 +323,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Single test with minLength validator failing": function( test ){
+	"Singletestwith minLength validator failing": function(test){
 		var schema = {
 			color: { type: "string", minLength: 5, required: true },
 		};
@@ -334,7 +334,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Single test with maxLength validator": function( test ){
+	"Singletestwith maxLength validator": function(test){
 		var schema = {
 			color: { type: "string", maxLength: 5, required: true },
 		};
@@ -345,7 +345,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Single test with maxLength validator failing": function( test ){
+	"Singletestwith maxLength validator failing": function(test){
 		var schema = {
 			color: { type: "string", maxLength: 5, required: true },
 		};
@@ -356,7 +356,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Single test with min validator": function( test ){
+	"Singletestwith min validator": function(test){
 		var schema = {
 			value: { type: "number", min: 5, required: true },
 		};
@@ -367,7 +367,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Single test with min validator failing": function( test ){
+	"Singletestwith min validator failing": function(test){
 		var schema = {
 			value: { type: "number", min: 5, required: true },
 		};
@@ -378,7 +378,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Single test with max validator": function( test ){
+	"Singletestwith max validator": function(test){
 		var schema = {
 			value: { type: "number", max: 5, required: true },
 		};
@@ -389,7 +389,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Single test with max validator failing": function( test ){
+	"Singletestwith max validator failing": function(test){
 		var schema = {
 			value: { type: "number", max: 5, required: true },
 		};
@@ -400,7 +400,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Single test with optional embedded object": function( test ) {
+	"Singletestwith optional embedded object": function(test) {
 		var schema = {
 			iAmOptional: {
 				value: {
@@ -417,7 +417,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Single test with optional embedded object with required field missing": function( test ) {
+	"Singletestwith optional embedded object with required field missing": function(test) {
 		var schema = {
 			iAmOptional: {
 				value: {
@@ -440,7 +440,7 @@ module.exports = {
 
 
 
-	"More complex test with optional objects": function( test ) {
+	"More complextestwith optional objects": function(test) {
 
 		var schema = {
 			name: {
@@ -470,7 +470,7 @@ module.exports = {
 		test.done();
 	},
 
-	"More complex test with optional object filled": function( test ) {
+	"More complextestwith optional object filled": function(test) {
 
 		var schema = {
 			name: {
@@ -504,7 +504,7 @@ module.exports = {
 		test.done();
 	},
 
-	"More complex test with optional object missing required field": function( test ) {
+	"More complextestwith optional object missing required field": function(test) {
 
 		var schema = {
 			name: {
@@ -537,7 +537,7 @@ module.exports = {
 		test.done();
 	},
 
-	"More complex test with optional objects 2": function( test ) {
+	"More complextestwith optional objects 2": function(test) {
 
 		var schema = {
 			name: {
@@ -639,7 +639,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Single test with enum": function( test ){
+	"Singletestwith enum": function(test){
 		var schema = {
 			fruit: {
 				type: "string",
@@ -654,7 +654,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Single test with enum inside an array": function( test ){
+	"Single test with enum inside an array": function(test){
 		var schema = {
 			fruit: [{
 				type: "string",
@@ -675,4 +675,127 @@ module.exports = {
 
 		test.done();
 	},
+
+	"Can use validation methods from validator module": function(test) {
+
+		var schema = {
+			url: {
+				type: 'string',
+				isURL: true
+			}
+		};
+
+		test.ok(jsvalidator({ url: 'trololo' }, schema).length === 1);
+		test.ok(jsvalidator({ url: 'http://www.gammasoft.com.br' }, schema).length === 0);
+		test.done();
+	},
+
+	"Can pass parameters to validation methods from validator module": function(test) {
+
+		var schema1 = {
+			allowedIp: {
+				type: 'string',
+				isIP: [4]
+			}
+		};
+
+		test.ok(jsvalidator({ allowedIp: '192.168.1.101' }, schema1).length === 0);
+		test.ok(jsvalidator({ allowedIp: 'FE80:0000:0000:0000:0202:B3FF:FE1E:8329' }, schema1).length === 1);
+
+		var schema2 = {
+			allowedIp: {
+				type: 'string',
+				isIP: [6]
+			}
+		};
+
+		test.ok(jsvalidator({ allowedIp: '192.168.1.101' }, schema2).length === 1);
+		test.ok(jsvalidator({ allowedIp: 'FE80:0000:0000:0000:0202:B3FF:FE1E:8329' }, schema2).length === 0);
+		test.ok(jsvalidator({ allowedIp: 'FE80::0202:B3FF:FE1E:8329' }, schema2).length === 0);
+
+		test.done();
+	},
+
+	"Can use validation methods from validator module with arrays": function(test) {
+		var schema1 = {
+			allowedIps: [{
+				type: 'string',
+				isIP: true
+			}]
+		};
+
+		var ips = [
+			'192.168.1.101',
+			'FE80:0000:0000:0000:0202:B3FF:FE1E:8329',
+			'FE80::0202:B3FF:FE1E:8329',
+			'19.117.63.253'
+		];
+
+		test.ok(jsvalidator({ allowedIps: ips }, schema1).length === 0);
+		test.done();
+	},
+
+	"Can use multiple methods from validator": function(test) {
+		var schema1 = {
+			emails: [{
+				type: 'string', //must be a string
+				trim: true, //that after trimmed
+				isEmail: true, //will be a valid email
+				isLength: [10, 14], //will must have length in between 10 and 14
+				enum: ['short@email.co', 'this@is.ok'] //and must be one of these
+			}],
+
+			coolText: {
+				type: 'string',
+				trim: true,
+				blacklist: ['ABC'],
+				toInt: true
+			}
+		};
+
+		var object = {
+			emails: [
+				'contact@gammasoft.com.br', //not ok (bigger than 14, not in enum - 2 messages)
+				'     short@email.co    ', //ok!
+				'this@is.ok', //ok!
+				'not@ok.com' //not ok (not in enum - 1 message)
+			],
+
+			coolText: '    A42B0C  '
+		};
+
+		test.ok(jsvalidator(object, schema1).length === 3);
+		test.equal(object.coolText, 420);
+		test.done();
+	},
+
+	"Can use sanitization methods from validator module": function(test) {
+		var schema = {
+			shouldBeAwesome: {
+				type: 'string',
+				toBoolean: true
+			}
+		};
+
+		var object1 = { shouldBeAwesome: 'yes!' };
+
+		test.ok(jsvalidator(object1, schema).length === 0);
+		test.equal(object1.shouldBeAwesome, true);
+		test.equal(typeof object1.shouldBeAwesome, 'boolean');
+
+		var schema1 = {
+			safeHtml: {
+				type: 'string',
+				escape: true
+			}
+		};
+
+		var object2 = { safeHtml: '<div style="someCss: true" />&nbsp;' };
+
+		test.ok(jsvalidator(object2, schema1).length === 0);
+		test.equal(object2.safeHtml, '&lt;div style=&quot;someCss: true&quot; /&gt;&amp;nbsp;');
+
+		test.done();
+	}
+
 };

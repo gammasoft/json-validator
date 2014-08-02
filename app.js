@@ -1,5 +1,6 @@
 var traverse = require('traverse'),
     extend = require('extend'),
+    validator = require('validator'),
 
     matchers = require('./matchers');
 
@@ -65,13 +66,18 @@ function validate(object, _schema, path, messages, optionals, debug){
 
     traverse(schema).forEach(function(node){
         if(this.parent && this.parent.key === 'enum') {
-            //se o pai é um enum, não continue
+            //if parent is enum do not continue to its parameters
             return;
         }
 
-        var isEnum = Array.isArray(node) && this.key === 'enum';
+        if(this.parent && validator[this.parent.key]) {
+            //if parent is a validator method, do not continue to its parameters
+            return;
+        }
 
-        if(typeof node === "object" && !isEnum) {
+        var shouldContinue = Array.isArray(node) && (this.key === 'enum' || validator[this.key]);
+
+        if(typeof node === "object" && !shouldContinue) {
            return;
         }
 
@@ -98,6 +104,29 @@ function validate(object, _schema, path, messages, optionals, debug){
             	//o que pode não ser desejado.
 
             	object.set(objectPath, match);
+            }
+        } else if(validator[matcherMethod]) {
+            var params = [objectValue],
+                shouldInvert = false;
+
+            if(Array.isArray(node)) {
+                params = params.concat(node);
+            } else if(typeof node === 'boolean') {
+                shouldInvert = !node;
+            }
+
+            var result = validator[matcherMethod].apply(null, params);
+
+            if(typeof result === 'boolean' && matcherMethod !== 'toBoolean') {
+                if(shouldInvert) {
+                    result = !result;
+                }
+
+                if(!result) {
+                    messages.push(objectPath + ' with value "' + objectValue + '" is invalid according to "' + matcherMethod + '"');
+                }
+            } else {
+                object.set(objectPath, result);
             }
         } else {
             process.stdout.write("json-validator: Warning: validator '" + matcherMethod + "' was not found. Skipping!");
