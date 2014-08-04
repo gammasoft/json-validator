@@ -92,6 +92,29 @@ jsvalidator(user, userSchema, function(err, messages) {
 
 The above example gives the following output:
 
+```json
+{
+    "name": "Gammasoft",
+    "email": "contact@gammasoft.com.br",
+    "description": "This module is &lt;b&gt;awesome&lt;/b&gt;",
+    "favoriteColors": [
+        "green",
+        "blue"
+    ],
+    "ipsAllowed": [
+        "192.168.1.102",
+        "0.0.0.0",
+        "thisIsNotAnIp"
+    ],
+    "myNumber": "42"
+}
+
+[
+    "favoriteColors.0 invalid: the value \"green\" is not allowed. Allowed values are: blue, black, orange",
+    "ipsAllowed,2 with value \"thisIsNotAnIp\" is invalid according to validator \"isIP\""
+]
+```
+
 
 #### License 
 
