@@ -124,7 +124,8 @@ function validate(object, _schema, path, messages, optionals, debug, callback){
                 node = compose(node.reverse());
             }
 
-            var match = matchers[matcherMethod](node, objectValue, objectPath.join("."), messages, optionals);
+            var objectClone = extend(true, {}, object.value),
+                match = matchers[matcherMethod].call(objectClone, node, objectValue, objectPath.join("."), messages, optionals);
 
             if(['transform', 'default'].indexOf(matcherMethod) > -1) {
             	//Aqui eu posso salvar o objectPath junto com o valor transformado,

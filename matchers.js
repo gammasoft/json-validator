@@ -104,8 +104,10 @@ module.exports = {
 	},
 
 	asyncValidate: function(fn, object, objectPath, messages) {
+		var that = this;
+
 		return function(cb) {
-			fn(object, objectPath, function(err, message) {
+			fn.call(that, object, objectPath, function(err, message) {
 				if(err) {
 					return cb(err);
 				}
@@ -116,7 +118,7 @@ module.exports = {
 	},
 
 	validate: function(fn, object, objectPath, messages) {
-		var result = fn(object, objectPath);
+		var result = fn.call(this, object, objectPath);
 
 		if(!result.isValid) {
 			messages.push(typeof result.message !== "undefined" ? result.message : objectPath + " invalid accoding to custom validator");
@@ -126,7 +128,7 @@ module.exports = {
 	},
 
 	transform: function(fn, object, objectPath, messages) {
-		return fn(object);
+		return fn.call(this, object);
 	},
 
 	default: function(defaultValue, currentValue, objectPath, messages) {

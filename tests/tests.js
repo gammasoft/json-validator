@@ -1044,5 +1044,89 @@ module.exports = {
 			test.equal(messages.length, 0);
 			test.done();
 		});
-	}
+	},
+
+	"Context object (this) in custom validator should be the object being validated": function(test) {
+		var schema = {
+			number: {
+				required: true,
+				type: 'number',
+				validate: function(value) {
+					return {
+						isValid: this.isFoo
+					};
+				}
+			},
+
+			isFoo: {
+				required: true,
+				type: 'boolean'
+			}
+		};
+
+		test.equal(jsvalidator({ number: 10, isFoo: true }, schema).length, 0);
+		test.equal(jsvalidator({ number: 5, isFoo: false }, schema).length, 1);
+		test.done();
+	},
+
+	"Should not be able to change context object (this) in custom validator": function(test) {
+		var schema = {
+			number: {
+				validate: function(value) {
+					this.number = 100;
+
+					return {
+						isValid: true
+					};
+				}
+			}
+		};
+
+		var object = {
+			number: 50
+		};
+
+		test.equal(jsvalidator(object, schema).length, 0);
+		test.equal(object.number, 50);
+		test.done();
+	},
+
+	"Context object (this) in custom transform should be the object being validated": function(test) {
+		var schema = {
+			height: {
+				required: true,
+				type: 'number',
+			},
+
+			isTall: {
+				transform: function() {
+					return this.height > 10;
+				},
+				required: true,
+				type: 'boolean'
+			},
+
+			whoCanGo: {
+				transform: function() {
+					if(this.isTall) {
+						return 'alpinist'
+					}
+				},
+				enum: ['alpinist']
+			}
+		};
+
+		var object1 = { height: 20 },
+			object2 = { height: 1 };
+
+		test.equal(jsvalidator(object1, schema).length, 0);
+		test.ok(object1.isTall);
+		test.equal(object1.whoCanGo, 'alpinist');
+
+		test.equal(jsvalidator(object2, schema).length, 1);
+		test.equal(object2.isTall, false);
+		test.equal(typeof object2.whoCanGo, 'undefined');
+
+		test.done();
+	},
 };
