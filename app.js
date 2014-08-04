@@ -29,9 +29,6 @@ module.exports = function(object, schema, optionals, debug, callback){
 };
 
 function validate(object, _schema, path, messages, optionals, debug, callback){
-
-
-
     var schema = extend(true, {}, _schema),
         asyncValidations = [];
 
@@ -176,7 +173,7 @@ function validate(object, _schema, path, messages, optionals, debug, callback){
     	console.log(messages);
     }
 
-    if(callback && asyncValidations && asyncValidations.length > 0) {
+    if(callback) {
         async.parallel(asyncValidations, function(err, asyncMessages) {
             if(err) {
                 return callback(err);
