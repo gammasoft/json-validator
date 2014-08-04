@@ -25,7 +25,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Singletestwith type mismatch": function(test){
+	"Single test with type mismatch": function(test){
 		var schema = {
 			name: { type: "string", required: true },
 			age: { type: "number", required: true }
@@ -37,7 +37,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Singletestwith type date": function(test){
+	"Single test with type date": function(test){
 		var schema = {
 			value: { type: "date", required: true },
 		};
@@ -48,7 +48,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Singletestwith type date failing": function(test){
+	"Single test with type date failing": function(test){
 		var schema = {
 			value: { type: "date", required: true },
 		};
@@ -59,7 +59,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Singletestwith type regexp": function(test){
+	"Single test with type regexp": function(test){
 		var schema = {
 				value: { type: "regexp", required: true },
 		};
@@ -231,7 +231,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Singletestwith custom validation function failing": function(test){
+	"Single test with custom validation function failing": function(test){
 		function mustContainMyName(name, path){
 			return {
 				isValid: typeof name !== "undefined" && name.indexOf("Renato") !== -1,
@@ -251,7 +251,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Singletestwith custom validation function": function(test){
+	"Single test with custom validation function": function(test){
 		function mustContainMyName(name, path){
 			return {
 				isValid: typeof name !== "undefined" && name.indexOf("Renato") !== -1,
@@ -271,7 +271,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Singletestwith custom validation default message": function(test){
+	"Single test with custom validation default message": function(test){
 		function mustContainMyName(name, path){
 			return {
 				isValid: typeof name !== "undefined" && name.indexOf("Renato") !== -1
@@ -290,7 +290,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Singletestwith length validator": function(test){
+	"Single test with length validator": function(test){
 		var schema = {
 			color: { type: "string", length: 5, required: true },
 		};
@@ -301,7 +301,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Singletestwith length validator failing": function(test){
+	"Single test with length validator failing": function(test){
 		var schema = {
 			color: { type: "string", length: 5, required: true },
 		};
@@ -312,7 +312,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Singletestwith minLength validator": function(test){
+	"Single test with minLength validator": function(test){
 		var schema = {
 			color: { type: "string", minLength: 5, required: true },
 		};
@@ -323,7 +323,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Singletestwith minLength validator failing": function(test){
+	"Single test with minLength validator failing": function(test){
 		var schema = {
 			color: { type: "string", minLength: 5, required: true },
 		};
@@ -334,7 +334,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Singletestwith maxLength validator": function(test){
+	"Single test with maxLength validator": function(test){
 		var schema = {
 			color: { type: "string", maxLength: 5, required: true },
 		};
@@ -345,7 +345,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Singletestwith maxLength validator failing": function(test){
+	"Single test with maxLength validator failing": function(test){
 		var schema = {
 			color: { type: "string", maxLength: 5, required: true },
 		};
@@ -356,7 +356,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Singletestwith min validator": function(test){
+	"Single test with min validator": function(test){
 		var schema = {
 			value: { type: "number", min: 5, required: true },
 		};
@@ -367,7 +367,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Singletestwith min validator failing": function(test){
+	"Single test with min validator failing": function(test){
 		var schema = {
 			value: { type: "number", min: 5, required: true },
 		};
@@ -378,7 +378,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Singletestwith max validator": function(test){
+	"Single test with max validator": function(test){
 		var schema = {
 			value: { type: "number", max: 5, required: true },
 		};
@@ -389,7 +389,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Singletestwith max validator failing": function(test){
+	"Single test with max validator failing": function(test){
 		var schema = {
 			value: { type: "number", max: 5, required: true },
 		};
@@ -400,7 +400,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Singletestwith optional embedded object": function(test) {
+	"Single test with optional embedded object": function(test) {
 		var schema = {
 			iAmOptional: {
 				value: {
@@ -417,7 +417,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Singletestwith optional embedded object with required field missing": function(test) {
+	"Single test with optional embedded object with required field missing": function(test) {
 		var schema = {
 			iAmOptional: {
 				value: {
@@ -1029,5 +1029,20 @@ module.exports = {
 			test.equal(messages.length, 2);
 			test.done();
 		})
+	},
+
+	"Will return callback even without async validators": function(test) {
+		var schema = {
+			name: { type: "string", required: true },
+			age: { type: "number", required: true }
+		};
+
+		var object = { name: "Renato", age: 26 };
+
+		jsvalidator(object, schema, function(err, messages) {
+			test.ifError(err);
+			test.equal(messages.length, 0);
+			test.done();
+		});
 	}
 };
