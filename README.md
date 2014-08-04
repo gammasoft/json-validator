@@ -8,9 +8,13 @@ Validates JSON against a schema
 
 #### Introduction
 
-This library helps you to check if a JSON or a javascript object conforms to a given pattern, in an async or sync manner. Also it helps you make changes to this object (e.g. remove mask from a given field, or a assign a default value for a field).  
+This module helps you to check if a JSON or a javascript object conforms to a given pattern, in an async or sync manner. Also it helps you make changes to this object (e.g. remove mask from a given field, or a assign a default value for a field).  
 
 Actually this library delegates complex validations to [validator.js](https://github.com/chriso/validator.js), this means you can use any of their methods. If you are using their validators make sure enclose parameters into square brackets `[]`: 
+
+#### Contributors
+
+[See detailed list here...](contributors.md)
 
 #### Instalation
 
