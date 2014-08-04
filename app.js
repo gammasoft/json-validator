@@ -5,16 +5,16 @@ var traverse = require('traverse'),
     matchers = require('./matchers');
 
 module.exports = function(object, schema, optionals, debug){
-    if ( typeof optionals === 'undefined' ) {
+    if(typeof optionals === 'undefined') {
         optionals = [];
     }
 
-    if ( typeof optionals === 'boolean' ) {
+    if(typeof optionals === 'boolean') {
+        debug = optionals;
         optionals = [];
-        debug = false;
     }
 
-    if ( typeof debug === 'undefined' ) {
+    if(typeof debug === 'undefined') {
         debug = false;
     }
 
@@ -60,12 +60,8 @@ function validate(object, _schema, path, messages, optionals, debug){
         return array;
     }
 
-    if(debug) {
-    	console.log();
-    }
-
     traverse(schema).forEach(function(node){
-        if(this.parent && this.parent.key === 'enum') {
+        if(this.parent && (this.parent.key === 'enum' || this.parent.key === 'transform')) {
             //if parent is enum do not continue to its parameters
             return;
         }
@@ -75,7 +71,7 @@ function validate(object, _schema, path, messages, optionals, debug){
             return;
         }
 
-        var shouldContinue = Array.isArray(node) && (this.key === 'enum' || validator[this.key]);
+        var shouldContinue = Array.isArray(node) && (this.key === 'enum' || this.key === 'transform' || validator[this.key]);
 
         if(typeof node === "object" && !shouldContinue) {
            return;
@@ -87,14 +83,40 @@ function validate(object, _schema, path, messages, optionals, debug){
 
         var objectValue = object.get(objectPath);
 
+        if( this.parent && //tem um pai e
+            'required' in this.parent.node && //o pai tem "required" e
+            this.parent.node['required'] === false && //o required do pai é falso e
+            (objectValue === null || typeof objectValue === 'undefined')) {//o objeto corrent não foi fornecido
+            return; //nem continua
+        }
+
         //didn't find, parent is listed as optional and parent also was not found
-        if(!objectValue && this.parent && this.parent.parent && find( optionals, this.parent.parent.path.join(".")) && !object.get(this.parent.parent.path) ) {
+        if(!objectValue && this.parent && this.parent.parent && find(optionals, this.parent.parent.path.join(".")) && !object.get(this.parent.parent.path) ) {
             return;
         }
 
         var matcherMethod = this.path.pop();
 
         if(matchers[matcherMethod]) {
+
+            if(matcherMethod === 'transform' && Array.isArray(node)) {
+                //we have multiple functions so we wrap them into a single function
+                //with underscore's compose
+                function compose(args) {
+                    var start = args.length - 1;
+
+                    return function() {
+                        var i = start;
+                        var result = args[start].apply(this, arguments);
+                        while (i--) result = args[i].call(this, result);
+
+                        return result;
+                    };
+                };
+
+                node = compose(node);
+            }
+
             var match = matchers[matcherMethod](node, objectValue, objectPath.join("."), messages, optionals);
 
             if(['transform', 'default'].indexOf(matcherMethod) > -1) {
@@ -123,7 +145,7 @@ function validate(object, _schema, path, messages, optionals, debug){
                 }
 
                 if(!result) {
-                    messages.push(objectPath + ' with value "' + objectValue + '" is invalid according to "' + matcherMethod + '"');
+                    messages.push(objectPath + ' with value "' + objectValue + '" is invalid according to validator "' + matcherMethod + '"');
                 }
             } else {
                 object.set(objectPath, result);
@@ -147,7 +169,7 @@ function validate(object, _schema, path, messages, optionals, debug){
 function find(array, term) {
     var found = false;
 
-    array.forEach( function( element ) {
+    array.forEach( function(element) {
         if(term.indexOf(element) !== -1) {
             found = true;
         }

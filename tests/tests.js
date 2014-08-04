@@ -851,5 +851,50 @@ module.exports = {
 		test.equal(jsvalidator(object, schema).length, 0);
 		test.equal(object.creationDate, 'now!');
 		test.done();
+	},
+
+	"If pass required: false, all other validations are skipped - the order of where 'required' is placed doesnt matter": function(test) {
+		var schema = {
+			name: {
+				isLength: [8],
+				required: false,
+				trim: true
+			}
+		};
+
+		var object1 = {
+			name: '   willWork  '
+		}
+
+		test.equal(jsvalidator({ name: null }, schema).length, 0);
+		test.equal(jsvalidator({}, schema).length, 0);
+		test.equal(jsvalidator(object1, schema).length, 0);
+		test.done();
+	},
+
+	"Can pass many transform functions within an array": function(test) {
+		function addSpaceBetweenLetters(string) {
+			return string.split('').join(' ');
+		}
+
+		function toUpperCase(string) {
+			return string.toUpperCase();
+		}
+
+		var schema = {
+			name: {
+				transform: [addSpaceBetweenLetters, toUpperCase],
+				trim: true,
+				isLength: [17]
+			}
+		};
+
+		var object = {
+			name: '    gammasoft    '
+		};
+
+		test.equal(jsvalidator(object, schema).length, 0);
+		test.equal(object.name, 'G A M M A S O F T')
+		test.done();
 	}
 };

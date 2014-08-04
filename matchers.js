@@ -26,7 +26,7 @@ module.exports = {
 	required: function(required, object, objectPath, messages, optionals) {
 		var match = (required && (typeof object !== "undefined" && object !== null));
 
-		if(!match) {
+		if(!match && required) {
 			messages.push(objectPath + " is required but was either undefined or null");
 		}
 
