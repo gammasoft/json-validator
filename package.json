@@ -7,7 +7,7 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "clear && ./node_modules/nodeunit/bin/nodeunit ./tests/*"
+    "test": "clear && ./node_modules/nodeunit/bin/nodeunit ./tests/tests.js"
   },
   "repository": {
     "type": "git",

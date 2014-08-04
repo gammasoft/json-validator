@@ -639,7 +639,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Singletestwith enum": function(test){
+	"Single test with enum": function(test){
 		var schema = {
 			fruit: {
 				type: "string",
@@ -895,6 +895,62 @@ module.exports = {
 
 		test.equal(jsvalidator(object, schema).length, 0);
 		test.equal(object.name, 'G A M M A S O F T')
+		test.done();
+	},
+
+	"Transform functions are invoked in the order they are declared 1": function(test) {
+		function first(string) {
+			return string + '1';
+		}
+
+		function second(string) {
+			return string + '2';
+		}
+
+		function third(string) {
+			return string + '3';
+		}
+
+		var schema = {
+			number: {
+				transform: [first, second, third]
+			}
+		};
+
+		var object = {
+			number: ''
+		};
+
+		test.equal(jsvalidator(object, schema).length, 0);
+		test.equal(object.number, '123')
+		test.done();
+	},
+
+	"Transform functions are invoked in the order they are declared 2": function(test) {
+		function first(string) {
+			return '';
+		}
+
+		function second(string) {
+			return string.trim;
+		}
+
+		function third(string) {
+			return null;
+		}
+
+		var schema = {
+			number: {
+				transform: [first, second, third]
+			}
+		};
+
+		var object = {
+			number: ''
+		};
+
+		test.equal(jsvalidator(object, schema).length, 0);
+		test.equal(object.number, null)
 		test.done();
 	},
 

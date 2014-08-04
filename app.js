@@ -124,7 +124,7 @@ function validate(object, _schema, path, messages, optionals, debug, callback){
                     };
                 };
 
-                node = compose(node);
+                node = compose(node.reverse());
             }
 
             var match = matchers[matcherMethod](node, objectValue, objectPath.join("."), messages, optionals);
@@ -158,7 +158,7 @@ function validate(object, _schema, path, messages, optionals, debug, callback){
                 }
 
                 if(!result) {
-                    messages.push(objectPath + ' with value "' + objectValue + '" is invalid according to validator "' + matcherMethod + '"');
+                    messages.push(objectPath.join('.') + ' with value "' + objectValue + '" is invalid according to validator "' + matcherMethod + '"');
                 }
             } else {
                 object.set(objectPath, result);
