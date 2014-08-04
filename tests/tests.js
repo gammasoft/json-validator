@@ -896,5 +896,82 @@ module.exports = {
 		test.equal(jsvalidator(object, schema).length, 0);
 		test.equal(object.name, 'G A M M A S O F T')
 		test.done();
+	},
+
+	"Can validate using async code": function(test) {
+		var schema = {
+			username: {
+				asyncValidate: function(name, path, cb) {
+					setTimeout(function() {
+						cb(null, path + ': "' + name + '" is already taken');
+					}, 10);
+				}
+			}
+		};
+
+		jsvalidator({ username: 'gammasoft' }, schema, function(err, messages) {
+			test.ifError(err);
+			test.equal(messages.length, 1);
+			test.done();
+		});
+	},
+
+	"Returning empty string, null or undefined from cb means no validation error ": function(test) {
+		var schema = {
+			username: {
+				asyncValidate: function(name, path, cb) {
+					setTimeout(function() {
+						cb(null, '');
+					}, 10);
+				}
+			},
+
+			email: {
+				asyncValidate: function(name, path, cb) {
+					setTimeout(function() {
+						cb(null, null);
+					}, 5);
+				}
+			},
+
+			anotherStuff: {
+				asyncValidate: function(name, path, cb) {
+					setTimeout(function() {
+						cb(null, {}.gimmeUndefined);
+					}, 15);
+				}
+			},
+		};
+
+		jsvalidator({ username: 'gammasoft' }, schema, function(err, messages) {
+			test.ifError(err);
+			test.equal(messages.length, 0);
+			test.done();
+		});
+	},
+
+	"Can use async validators in array": function(test) {
+		var schema = {
+			emails: [{
+				asyncValidate: function(email, path, cb) {
+					setTimeout(function() {
+						if(['gammasoft', 'renatoargh'].indexOf(email) > -1) {
+							return cb(null, path + ': "' + email + '" already taken');
+						}
+
+						return cb(null, null);
+					}, 10);
+				}
+			}]
+		};
+
+		var object = {
+			emails: ['gammasoft', 'foo', 'renatoargh', 'bar']
+		};
+
+		jsvalidator(object, schema, function(err, messages) {
+			test.equal(messages.length, 2);
+			test.done();
+		})
 	}
 };

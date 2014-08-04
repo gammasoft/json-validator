@@ -1,10 +1,11 @@
-var traverse = require('traverse'),
+var async = require('async'),
+    traverse = require('traverse'),
     extend = require('extend'),
     validator = require('validator'),
 
     matchers = require('./matchers');
 
-module.exports = function(object, schema, optionals, debug){
+module.exports = function(object, schema, optionals, debug, callback){
     if(typeof optionals === 'undefined') {
         optionals = [];
     }
@@ -14,16 +15,25 @@ module.exports = function(object, schema, optionals, debug){
         optionals = [];
     }
 
+    if(typeof optionals === 'function') {
+        debug = false;
+        callback = optionals;
+        optionals = [];
+    }
+
     if(typeof debug === 'undefined') {
         debug = false;
     }
 
-    return validate(object, schema, '', [], optionals, debug);
+    return validate(object, schema, '', [], optionals, debug, callback);
 };
 
-function validate(object, _schema, path, messages, optionals, debug){
+function validate(object, _schema, path, messages, optionals, debug, callback){
 
-    var schema = extend(true, {}, _schema);
+
+
+    var schema = extend(true, {}, _schema),
+        asyncValidations = [];
 
     object = traverse(object);
 
@@ -122,10 +132,13 @@ function validate(object, _schema, path, messages, optionals, debug){
             if(['transform', 'default'].indexOf(matcherMethod) > -1) {
             	//Aqui eu posso salvar o objectPath junto com o valor transformado,
             	//e depois só aplicar se não houverem mensagens.
+                //
             	//Neste caso as transformações são aplicadas independente de estar valido ou não
             	//o que pode não ser desejado.
 
             	object.set(objectPath, match);
+            } else if(['asyncValidate'].indexOf(matcherMethod) > -1) {
+                asyncValidations.push(match);
             }
         } else if(validator[matcherMethod]) {
             var params = [objectValue],
@@ -161,6 +174,18 @@ function validate(object, _schema, path, messages, optionals, debug){
 
     if(debug) {
     	console.log(messages);
+    }
+
+    if(callback && asyncValidations && asyncValidations.length > 0) {
+        async.parallel(asyncValidations, function(err, asyncMessages) {
+            if(err) {
+                return callback(err);
+            }
+
+            callback(null, messages.concat(asyncMessages.filter(function(asyncMessage) {
+                return asyncMessage !== '' && asyncMessage !== null && typeof asyncMessage !== 'undefined';
+            })));
+        });
     }
 
     return messages;

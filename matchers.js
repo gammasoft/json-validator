@@ -103,6 +103,18 @@ module.exports = {
 		return match;
 	},
 
+	asyncValidate: function(fn, object, objectPath, messages) {
+		return function(cb) {
+			fn(object, objectPath, function(err, message) {
+				if(err) {
+					return cb(err);
+				}
+
+				cb(null, message);
+			});
+		}
+	},
+
 	validate: function(fn, object, objectPath, messages) {
 		var result = fn(object, objectPath);
 
