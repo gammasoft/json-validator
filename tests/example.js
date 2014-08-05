@@ -1,4 +1,4 @@
-var jsvalidator = require('../app');
+var jsv = require('../app');
 
 var userSchema = {
   name: {
@@ -57,7 +57,7 @@ var user = {
   ipsAllowed: ['192.168.1.102   ', '0.0.0.0', 'thisIsNotAnIp']
 };
 
-jsvalidator(user, userSchema, function(err, messages) {
+jsv.validate(user, userSchema, function(err, messages) {
   if(err) {
     throw err;
   }

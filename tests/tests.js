@@ -1,4 +1,4 @@
-var jsvalidator = require("../app");
+var jsv = require("../app");
 
 module.exports = {
 	"Single test": function(test){
@@ -9,7 +9,7 @@ module.exports = {
 
 		var object = { name: "Renato", age: 26 };
 
-		test.ok(jsvalidator(object, schema, false).length === 0);
+		test.ok(jsv.validate(object, schema, false).length === 0);
 		test.done();
 	},
 
@@ -21,7 +21,7 @@ module.exports = {
 
 		var object = { age: 26 };
 
-		test.ok(jsvalidator(object, schema, false).indexOf("name is required but was either undefined or null") !== -1);
+		test.ok(jsv.validate(object, schema, false).indexOf("name is required but was either undefined or null") !== -1);
 		test.done();
 	},
 
@@ -33,7 +33,7 @@ module.exports = {
 
 		var object = { name: 1, age: 26 };
 
-		test.ok(jsvalidator(object, schema, false).indexOf("name is not of type string") !== -1);
+		test.ok(jsv.validate(object, schema, false).indexOf("name is not of type string") !== -1);
 		test.done();
 	},
 
@@ -44,7 +44,7 @@ module.exports = {
 
 		var object = { value: new Date() };
 
-		test.ok(jsvalidator(object, schema, false).length === 0);
+		test.ok(jsv.validate(object, schema, false).length === 0);
 		test.done();
 	},
 
@@ -55,7 +55,7 @@ module.exports = {
 
 		var object = { value: "zumba" };
 
-		test.ok(jsvalidator(object, schema, false).indexOf("value is not of type date") !== -1);
+		test.ok(jsv.validate(object, schema, false).indexOf("value is not of type date") !== -1);
 		test.done();
 	},
 
@@ -66,7 +66,7 @@ module.exports = {
 
 		var object = { value: "zuffa" };
 
-		test.ok(jsvalidator(object, schema, false).indexOf("value is not of type regexp") !== -1);
+		test.ok(jsv.validate(object, schema, false).indexOf("value is not of type regexp") !== -1);
 		test.done();
 	},
 
@@ -81,7 +81,7 @@ module.exports = {
 
 		var object = { name: { first: "Renato", last: "Gama" }, age: 26 };
 
-		test.ok(jsvalidator(object, schema, false).length === 0);
+		test.ok(jsv.validate(object, schema, false).length === 0);
 		test.done();
 	},
 
@@ -96,7 +96,7 @@ module.exports = {
 
 		var object = { name: { last: "Gama" }, age: 26 };
 
-		test.ok(jsvalidator(object, schema, false).indexOf("name.first is required but was either undefined or null") !== -1);
+		test.ok(jsv.validate(object, schema, false).indexOf("name.first is required but was either undefined or null") !== -1);
 		test.done();
 	},
 
@@ -112,7 +112,7 @@ module.exports = {
 
 		var object = { name: "Renato", age: 26, pets: [{ name: "Chevete", kind: "horse" }, { name: "Adam", kind: "dog" }] };
 
-		test.ok(jsvalidator(object, schema, false).length === 0);
+		test.ok(jsv.validate(object, schema, false).length === 0);
 		test.done();
 	},
 
@@ -123,7 +123,7 @@ module.exports = {
 
 		var object = { colors: [] };
 
-		test.ok(jsvalidator(object, schema, false).length === 0);
+		test.ok(jsv.validate(object, schema, false).length === 0);
 		test.done();
 	},
 
@@ -139,7 +139,7 @@ module.exports = {
 
 		var object = { name: "Renato", age: 26, pets: [{ name: "Chevete" }, { name: "Adam", kind: "dog" }] };
 
-		var message = jsvalidator(object, schema, false);
+		var message = jsv.validate(object, schema, false);
 
 		test.ok(message.indexOf("pets.0.kind is required but was either undefined or null") !== -1);
 		test.done();
@@ -182,7 +182,7 @@ module.exports = {
 			}
 		};
 
-		var message = jsvalidator(object, schema, false);
+		var message = jsv.validate(object, schema, false);
 
 		test.ok(message.length === 0);
 		test.done();
@@ -224,7 +224,7 @@ module.exports = {
 			}
 		};
 
-		var message = jsvalidator(object, schema, false);
+		var message = jsv.validate(object, schema, false);
 
 		test.ok(message.indexOf("person.age is required but was either undefined or null") !== -1);
 		test.ok(message.indexOf("person.pets.0.toys.0 is required but was either undefined or null") !== -1);
@@ -245,7 +245,7 @@ module.exports = {
 
 		var object = { name: "Foo Bar" };
 
-		var messages = jsvalidator(object, schema, false);
+		var messages = jsv.validate(object, schema, false);
 
 		test.ok(messages.indexOf("name must be defined and contain the string 'Renato'") !== -1);
 		test.done();
@@ -265,7 +265,7 @@ module.exports = {
 
 		var object = { name: "Renato" };
 
-		var messages = jsvalidator(object, schema, false);
+		var messages = jsv.validate(object, schema, false);
 
 		test.ok(messages.length === 0);
 		test.done();
@@ -284,75 +284,9 @@ module.exports = {
 
 		var object = { name: "Foo Bar" };
 
-		var messages = jsvalidator(object, schema, false);
+		var messages = jsv.validate(object, schema, false);
 
 		test.ok(messages.indexOf("name invalid accoding to custom validator") !== -1);
-		test.done();
-	},
-
-	"Single test with length validator": function(test){
-		var schema = {
-			color: { type: "string", length: 5, required: true },
-		};
-
-		var object = { color: "green" };
-
-		test.ok(jsvalidator(object, schema, false).length === 0);
-		test.done();
-	},
-
-	"Single test with length validator failing": function(test){
-		var schema = {
-			color: { type: "string", length: 5, required: true },
-		};
-
-		var object = { color: "red" };
-
-		test.ok(jsvalidator(object, schema, false).indexOf("color must have exact length of 5") !== -1);
-		test.done();
-	},
-
-	"Single test with minLength validator": function(test){
-		var schema = {
-			color: { type: "string", minLength: 5, required: true },
-		};
-
-		var object = { color: "greenish black" };
-
-		test.ok(jsvalidator(object, schema, false).length === 0);
-		test.done();
-	},
-
-	"Single test with minLength validator failing": function(test){
-		var schema = {
-			color: { type: "string", minLength: 5, required: true },
-		};
-
-		var object = { color: "red" };
-
-		test.ok(jsvalidator(object, schema, false).indexOf("color must have length greater or equal 5") !== -1);
-		test.done();
-	},
-
-	"Single test with maxLength validator": function(test){
-		var schema = {
-			color: { type: "string", maxLength: 5, required: true },
-		};
-
-		var object = { color: "red" };
-
-		test.ok(jsvalidator(object, schema, false).length === 0);
-		test.done();
-	},
-
-	"Single test with maxLength validator failing": function(test){
-		var schema = {
-			color: { type: "string", maxLength: 5, required: true },
-		};
-
-		var object = { color: "redish yellow" };
-
-		test.ok(jsvalidator(object, schema, false).indexOf("color must have length lesser or equal 5") !== -1);
 		test.done();
 	},
 
@@ -363,7 +297,7 @@ module.exports = {
 
 		var object = { value: 5 };
 
-		test.ok(jsvalidator(object, schema, false).length === 0);
+		test.ok(jsv.validate(object, schema, false).length === 0);
 		test.done();
 	},
 
@@ -374,7 +308,7 @@ module.exports = {
 
 		var object = { value: 4 };
 
-		test.ok(jsvalidator(object, schema, false).indexOf("value must be greater or equals (min) 5") !== -1);
+		test.ok(jsv.validate(object, schema, false).indexOf("value must be greater or equals (min) 5") !== -1);
 		test.done();
 	},
 
@@ -385,7 +319,7 @@ module.exports = {
 
 		var object = { value: 5 };
 
-		test.ok(jsvalidator(object, schema, false).length === 0);
+		test.ok(jsv.validate(object, schema, false).length === 0);
 		test.done();
 	},
 
@@ -396,7 +330,7 @@ module.exports = {
 
 		var object = { value: 6 };
 
-		test.ok(jsvalidator(object, schema, false).indexOf("value must be lesser or equals (max) 5") !== -1);
+		test.ok(jsv.validate(object, schema, false).indexOf("value must be lesser or equals (max) 5") !== -1);
 		test.done();
 	},
 
@@ -413,7 +347,7 @@ module.exports = {
 		var object = { },
 			optionals = [ "iAmOptional" ];
 
-		test.ok(jsvalidator(object, schema, optionals, false).length === 0);
+		test.ok(jsv.validate(object, schema, optionals, false).length === 0);
 		test.done();
 	},
 
@@ -434,13 +368,13 @@ module.exports = {
 		},
 		optionals = [ "iAmOptional" ];
 
-		test.ok(jsvalidator(object, schema, optionals, false).indexOf("iAmOptional.value is required but was either undefined or null") !== -1);
+		test.ok(jsv.validate(object, schema, optionals, false).indexOf("iAmOptional.value is required but was either undefined or null") !== -1);
 		test.done();
 	},
 
 
 
-	"More complextestwith optional objects": function(test) {
+	"More complex test with optional objects": function(test) {
 
 		var schema = {
 			name: {
@@ -466,11 +400,11 @@ module.exports = {
 			name: "Renato Gama"
 		};
 
-		test.ok(jsvalidator(object, schema, optionals, false).length === 0);
+		test.ok(jsv.validate(object, schema, optionals, false).length === 0);
 		test.done();
 	},
 
-	"More complextestwith optional object filled": function(test) {
+	"More complex test with optional object filled": function(test) {
 
 		var schema = {
 			name: {
@@ -500,11 +434,11 @@ module.exports = {
 			}
 		};
 
-		test.ok(jsvalidator(object, schema, optionals, false).length === 0);
+		test.ok(jsv.validate(object, schema, optionals, false).length === 0);
 		test.done();
 	},
 
-	"More complextestwith optional object missing required field": function(test) {
+	"More complex test with optional object missing required field": function(test) {
 
 		var schema = {
 			name: {
@@ -533,11 +467,11 @@ module.exports = {
 			}
 		};
 
-		test.ok(jsvalidator(object, schema, optionals, false).indexOf("address.street is required but was either undefined or null") !== -1);
+		test.ok(jsv.validate(object, schema, optionals, false).indexOf("address.street is required but was either undefined or null") !== -1);
 		test.done();
 	},
 
-	"More complextestwith optional objects 2": function(test) {
+	"More complex test with optional objects 2": function(test) {
 
 		var schema = {
 			name: {
@@ -577,7 +511,7 @@ module.exports = {
 			}
 		};
 
-		test.ok(jsvalidator(object, schema, optionals, false).length === 0);
+		test.ok(jsv.validate(object, schema, optionals, false).length === 0);
 
 
 		var object2 = {
@@ -590,7 +524,7 @@ module.exports = {
 			}]
 		};
 
-		test.ok(jsvalidator(object2, schema, optionals, false).indexOf("friends.1.name is required but was either undefined or null") !== -1);
+		test.ok(jsv.validate(object2, schema, optionals, false).indexOf("friends.1.name is required but was either undefined or null") !== -1);
 		test.done();
 	},
 
@@ -609,7 +543,7 @@ module.exports = {
 			}
 		};
 
-		test.ok(jsvalidator(object, schema).length === 0);
+		test.ok(jsv.validate(object, schema).length === 0);
 		test.equal(object.name, 'gammasoft');
 		test.done();
 	},
@@ -633,7 +567,7 @@ module.exports = {
 			]
 		};
 
-		test.ok(jsvalidator(object, schema, false).length === 0);
+		test.ok(jsv.validate(object, schema, false).length === 0);
 		test.equal(object.pets[0].name, 'CHEVETE');
 		test.equal(object.pets[1].name, 'ADAM');
 		test.done();
@@ -648,9 +582,9 @@ module.exports = {
 			}
 		};
 
-		test.ok(jsvalidator({ fruit: 'banana' }, schema).length === 0);
-		test.ok(jsvalidator({ fruit: 'apple' }, schema).length === 0);
-		test.ok(jsvalidator({ fruit: 'orange' }, schema).length === 1);
+		test.ok(jsv.validate({ fruit: 'banana' }, schema).length === 0);
+		test.ok(jsv.validate({ fruit: 'apple' }, schema).length === 0);
+		test.ok(jsv.validate({ fruit: 'orange' }, schema).length === 1);
 		test.done();
 	},
 
@@ -663,15 +597,15 @@ module.exports = {
 			}]
 		};
 
-		test.ok(jsvalidator({ fruit: ['banana', 'apple', 'orange', 'watermelon'] }, schema).length === 1);
-		test.ok(jsvalidator({ fruit: ['banana', 'apple', 'watermelon'] }, schema).length === 1);
-		test.ok(jsvalidator({ fruit: ['banana', 'watermelon'] }, schema).length === 1);
-		test.ok(jsvalidator({ fruit: ['watermelon'] }, schema).length === 1);
+		test.ok(jsv.validate({ fruit: ['banana', 'apple', 'orange', 'watermelon'] }, schema).length === 1);
+		test.ok(jsv.validate({ fruit: ['banana', 'apple', 'watermelon'] }, schema).length === 1);
+		test.ok(jsv.validate({ fruit: ['banana', 'watermelon'] }, schema).length === 1);
+		test.ok(jsv.validate({ fruit: ['watermelon'] }, schema).length === 1);
 
-		test.ok(jsvalidator({ fruit: ['banana', 'apple', 'orange'] }, schema).length === 0);
-		test.ok(jsvalidator({ fruit: ['banana', 'apple'] }, schema).length === 0);
-		test.ok(jsvalidator({ fruit: ['orange', 'banana'] }, schema).length === 0);
-		test.ok(jsvalidator({ fruit: ['banana'] }, schema).length === 0);
+		test.ok(jsv.validate({ fruit: ['banana', 'apple', 'orange'] }, schema).length === 0);
+		test.ok(jsv.validate({ fruit: ['banana', 'apple'] }, schema).length === 0);
+		test.ok(jsv.validate({ fruit: ['orange', 'banana'] }, schema).length === 0);
+		test.ok(jsv.validate({ fruit: ['banana'] }, schema).length === 0);
 
 		test.done();
 	},
@@ -685,8 +619,8 @@ module.exports = {
 			}
 		};
 
-		test.ok(jsvalidator({ url: 'trololo' }, schema).length === 1);
-		test.ok(jsvalidator({ url: 'http://www.gammasoft.com.br' }, schema).length === 0);
+		test.ok(jsv.validate({ url: 'trololo' }, schema).length === 1);
+		test.ok(jsv.validate({ url: 'http://www.gammasoft.com.br' }, schema).length === 0);
 		test.done();
 	},
 
@@ -699,8 +633,8 @@ module.exports = {
 			}
 		};
 
-		test.ok(jsvalidator({ allowedIp: '192.168.1.101' }, schema1).length === 0);
-		test.ok(jsvalidator({ allowedIp: 'FE80:0000:0000:0000:0202:B3FF:FE1E:8329' }, schema1).length === 1);
+		test.ok(jsv.validate({ allowedIp: '192.168.1.101' }, schema1).length === 0);
+		test.ok(jsv.validate({ allowedIp: 'FE80:0000:0000:0000:0202:B3FF:FE1E:8329' }, schema1).length === 1);
 
 		var schema2 = {
 			allowedIp: {
@@ -709,9 +643,9 @@ module.exports = {
 			}
 		};
 
-		test.ok(jsvalidator({ allowedIp: '192.168.1.101' }, schema2).length === 1);
-		test.ok(jsvalidator({ allowedIp: 'FE80:0000:0000:0000:0202:B3FF:FE1E:8329' }, schema2).length === 0);
-		test.ok(jsvalidator({ allowedIp: 'FE80::0202:B3FF:FE1E:8329' }, schema2).length === 0);
+		test.ok(jsv.validate({ allowedIp: '192.168.1.101' }, schema2).length === 1);
+		test.ok(jsv.validate({ allowedIp: 'FE80:0000:0000:0000:0202:B3FF:FE1E:8329' }, schema2).length === 0);
+		test.ok(jsv.validate({ allowedIp: 'FE80::0202:B3FF:FE1E:8329' }, schema2).length === 0);
 
 		test.done();
 	},
@@ -731,7 +665,7 @@ module.exports = {
 			'19.117.63.253'
 		];
 
-		test.ok(jsvalidator({ allowedIps: ips }, schema1).length === 0);
+		test.ok(jsv.validate({ allowedIps: ips }, schema1).length === 0);
 		test.done();
 	},
 
@@ -764,7 +698,7 @@ module.exports = {
 			coolText: '    A42B0C  '
 		};
 
-		test.ok(jsvalidator(object, schema1).length === 3);
+		test.ok(jsv.validate(object, schema1).length === 3);
 		test.equal(object.coolText, 420);
 		test.done();
 	},
@@ -779,7 +713,7 @@ module.exports = {
 
 		var object1 = { shouldBeAwesome: 'yes!' };
 
-		test.ok(jsvalidator(object1, schema).length === 0);
+		test.ok(jsv.validate(object1, schema).length === 0);
 		test.equal(object1.shouldBeAwesome, true);
 		test.equal(typeof object1.shouldBeAwesome, 'boolean');
 
@@ -792,7 +726,7 @@ module.exports = {
 
 		var object2 = { safeHtml: '<div style="someCss: true" />&nbsp;' };
 
-		test.ok(jsvalidator(object2, schema1).length === 0);
+		test.ok(jsv.validate(object2, schema1).length === 0);
 		test.equal(object2.safeHtml, '&lt;div style=&quot;someCss: true&quot; /&gt;&amp;nbsp;');
 
 		test.done();
@@ -814,10 +748,10 @@ module.exports = {
 		var object1 = {},
 			object2 = { name: 'BAR' };
 
-		test.equal(jsvalidator(object1, schema).length, 0);
+		test.equal(jsv.validate(object1, schema).length, 0);
 		test.equal(object1.name, 'FOO');
 
-		test.equal(jsvalidator(object2, schema).length, 0);
+		test.equal(jsv.validate(object2, schema).length, 0);
 		test.equal(object2.name, 'BAR');
 
 		test.done();
@@ -832,7 +766,7 @@ module.exports = {
 
 		var object = {};
 
-		test.equal(jsvalidator(object, schema).length, 0);
+		test.equal(jsv.validate(object, schema).length, 0);
 		test.equal(object.name, 'not specified');
 		test.done();
 	},
@@ -848,7 +782,7 @@ module.exports = {
 
 		var object = {};
 
-		test.equal(jsvalidator(object, schema).length, 0);
+		test.equal(jsv.validate(object, schema).length, 0);
 		test.equal(object.creationDate, 'now!');
 		test.done();
 	},
@@ -866,9 +800,9 @@ module.exports = {
 			name: '   willWork  '
 		}
 
-		test.equal(jsvalidator({ name: null }, schema).length, 0);
-		test.equal(jsvalidator({}, schema).length, 0);
-		test.equal(jsvalidator(object1, schema).length, 0);
+		test.equal(jsv.validate({ name: null }, schema).length, 0);
+		test.equal(jsv.validate({}, schema).length, 0);
+		test.equal(jsv.validate(object1, schema).length, 0);
 		test.done();
 	},
 
@@ -893,7 +827,7 @@ module.exports = {
 			name: '    gammasoft    '
 		};
 
-		test.equal(jsvalidator(object, schema).length, 0);
+		test.equal(jsv.validate(object, schema).length, 0);
 		test.equal(object.name, 'G A M M A S O F T')
 		test.done();
 	},
@@ -921,7 +855,7 @@ module.exports = {
 			number: ''
 		};
 
-		test.equal(jsvalidator(object, schema).length, 0);
+		test.equal(jsv.validate(object, schema).length, 0);
 		test.equal(object.number, '123')
 		test.done();
 	},
@@ -949,7 +883,7 @@ module.exports = {
 			number: ''
 		};
 
-		test.equal(jsvalidator(object, schema).length, 0);
+		test.equal(jsv.validate(object, schema).length, 0);
 		test.equal(object.number, null)
 		test.done();
 	},
@@ -965,7 +899,7 @@ module.exports = {
 			}
 		};
 
-		jsvalidator({ username: 'gammasoft' }, schema, function(err, messages) {
+		jsv.validate({ username: 'gammasoft' }, schema, function(err, messages) {
 			test.ifError(err);
 			test.equal(messages.length, 1);
 			test.done();
@@ -999,7 +933,7 @@ module.exports = {
 			},
 		};
 
-		jsvalidator({ username: 'gammasoft' }, schema, function(err, messages) {
+		jsv.validate({ username: 'gammasoft' }, schema, function(err, messages) {
 			test.ifError(err);
 			test.equal(messages.length, 0);
 			test.done();
@@ -1025,7 +959,7 @@ module.exports = {
 			emails: ['gammasoft', 'foo', 'renatoargh', 'bar']
 		};
 
-		jsvalidator(object, schema, function(err, messages) {
+		jsv.validate(object, schema, function(err, messages) {
 			test.equal(messages.length, 2);
 			test.done();
 		})
@@ -1039,7 +973,7 @@ module.exports = {
 
 		var object = { name: "Renato", age: 26 };
 
-		jsvalidator(object, schema, function(err, messages) {
+		jsv.validate(object, schema, function(err, messages) {
 			test.ifError(err);
 			test.equal(messages.length, 0);
 			test.done();
@@ -1064,8 +998,8 @@ module.exports = {
 			}
 		};
 
-		test.equal(jsvalidator({ number: 10, isFoo: true }, schema).length, 0);
-		test.equal(jsvalidator({ number: 5, isFoo: false }, schema).length, 1);
+		test.equal(jsv.validate({ number: 10, isFoo: true }, schema).length, 0);
+		test.equal(jsv.validate({ number: 5, isFoo: false }, schema).length, 1);
 		test.done();
 	},
 
@@ -1086,7 +1020,7 @@ module.exports = {
 			number: 50
 		};
 
-		test.equal(jsvalidator(object, schema).length, 0);
+		test.equal(jsv.validate(object, schema).length, 0);
 		test.equal(object.number, 50);
 		test.done();
 	},
@@ -1119,14 +1053,120 @@ module.exports = {
 		var object1 = { height: 20 },
 			object2 = { height: 1 };
 
-		test.equal(jsvalidator(object1, schema).length, 0);
+		test.equal(jsv.validate(object1, schema).length, 0);
 		test.ok(object1.isTall);
 		test.equal(object1.whoCanGo, 'alpinist');
 
-		test.equal(jsvalidator(object2, schema).length, 1);
+		test.equal(jsv.validate(object2, schema).length, 1);
 		test.equal(object2.isTall, false);
 		test.equal(typeof object2.whoCanGo, 'undefined');
 
 		test.done();
 	},
+
+	"Can use toNull to transform empty strings and undefined values into null values": function(test) {
+		var schema = {
+			name: {
+				toNull: true
+			}
+		};
+
+		var object1 = { name: '' };
+		test.equal(jsv.validate(object1, schema).length, 0);
+		test.equal(object1.name, null);
+
+		var object2 = {};
+		test.equal(jsv.validate(object1, schema).length, 0);
+		test.equal(object1.name, null);
+
+		test.done();
+	},
+
+	"Can use toUpperCase": function(test) {
+		var schema = {
+			name: {
+				toUpperCase: true
+			}
+		};
+
+		var object1 = { name: 'gammasoft' };
+		test.equal(jsv.validate(object1, schema).length, 0);
+		test.equal(object1.name, 'GAMMASOFT');
+		test.done();
+	},
+
+	"Can use toLowerCase": function(test) {
+		var schema = {
+			name: {
+				toLowerCase: true
+			}
+		};
+
+		var object1 = { name: 'GAMMASOFT' };
+		test.equal(jsv.validate(object1, schema).length, 0);
+		test.equal(object1.name, 'gammasoft');
+		test.done();
+	},
+
+	'Can specify default message for "required"': function(test) {
+		var schema = {
+			name: {
+				required: true
+			}
+		};
+
+		jsv.setMessage('required', 'A VALUE AT PATH "%path" IS REQUIRED!');
+
+		test.equal(jsv.validate({}, schema)[0], 'A VALUE AT PATH "name" IS REQUIRED!');
+		test.done();
+	},
+
+	'Can specify default message for "type"': function(test) {
+		var schema = {
+			name: {
+				type: 'string'
+			}
+		};
+
+		jsv.setMessage('type', 'VALUE AT PATH "%path" MUST BE "%value"!');
+
+		test.equal(jsv.validate({ name: 1 }, schema)[0], 'VALUE AT PATH "name" MUST BE "string"!');
+		test.done();
+	},
+
+	'Can specify custom messages for validators from validator.js': function(test) {
+		var schema = {
+			theUrl: {
+				isURL: true
+			}
+		};
+
+		jsv.setMessage('isURL', '"%value" at %path is not a url');
+
+		test.equal(jsv.validate({ theUrl: 'not a url' }, schema)[0], '"not a url" at theUrl is not a url');
+		test.done();
+	},
+
+	'Custom object in "default" method must be the current object being validated': function(test) {
+		var schema = {
+			age: {
+				type: 'number'
+			},
+
+			canProceed: {
+				default: function() {
+					return this.age >= 18;
+				}
+			}
+		};
+
+		var kid = { age: 10 },
+			adult = { age: 27 };
+
+		test.equal(jsv.validate(kid, schema).length, 0);
+		test.equal(kid.canProceed, false);
+		test.equal(jsv.validate(adult, schema).length, 0);
+		test.equal(adult.canProceed, true);
+		test.done();
+	}
 };

@@ -3,9 +3,39 @@ var async = require('async'),
     extend = require('extend'),
     validator = require('validator'),
 
-    matchers = require('./matchers');
+    matchers = require('./matchers').matchers,
+    validationMessages = require('./matchers').validationMessages,
+    pushMessage = require('./matchers').pushMessage;
 
-module.exports = function(object, schema, optionals, debug, callback){
+validator.extend('toNull', function(string) {
+    if(string === '') {
+        return null;
+    }
+
+    return string;
+});
+
+validator.extend('toUpperCase', function(string) {
+    return string.toUpperCase();
+});
+
+validator.extend('toLowerCase', function(string) {
+    return string.toLowerCase();
+});
+
+module.exports.extend = function(name, fn) {
+    validator.extend(name, fn);
+};
+
+module.exports.setMessage = function(validator, message) {
+    validationMessages[validator] = message;
+};
+
+module.exports.validate = function(object, schema, optionals, debug, callback) {
+    if(typeof object === 'string') {
+        object = JSON.parse(object);
+    }
+
     if(typeof optionals === 'undefined') {
         optionals = [];
     }
@@ -28,7 +58,7 @@ module.exports = function(object, schema, optionals, debug, callback){
     return validate(object, schema, '', [], optionals, debug, callback);
 };
 
-function validate(object, _schema, path, messages, optionals, debug, callback){
+function validate(object, _schema, path, messages, optionals, debug, callback) {
     var schema = extend(true, {}, _schema),
         asyncValidations = [];
 
@@ -93,7 +123,12 @@ function validate(object, _schema, path, messages, optionals, debug, callback){
         if( this.parent && //tem um pai e
             'required' in this.parent.node && //o pai tem "required" e
             this.parent.node['required'] === false && //o required do pai é falso e
-            (objectValue === null || typeof objectValue === 'undefined')) {//o objeto corrent não foi fornecido
+            (objectValue === null || typeof objectValue === 'undefined')) {//o objeto corrente não foi fornecido
+
+            if(debug) {
+                console.log('Not required and null or undefined');
+            }
+
             return; //nem continua
         }
 
@@ -156,7 +191,11 @@ function validate(object, _schema, path, messages, optionals, debug, callback){
                 }
 
                 if(!result) {
-                    messages.push(objectPath.join('.') + ' with value "' + objectValue + '" is invalid according to validator "' + matcherMethod + '"');
+                    if(validationMessages[matcherMethod]) {
+                        pushMessage(messages, matcherMethod, objectValue, objectPath.join('.'), params);
+                    } else {
+                        messages.push(objectPath.join('.') + ' with value "' + objectValue + '" is invalid according to validator "' + matcherMethod + '"');
+                    }
                 }
             } else {
                 object.set(objectPath, result);
