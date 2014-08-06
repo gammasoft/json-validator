@@ -13,7 +13,7 @@ module.exports.validationMessages = {
     'validatorjs': '%path with value "%value" is invalid according to validator "%matcher"'
 };
 
-validationMessagesBackup = extend({}, module.exports.validationMessages);
+var validationMessagesBackup = extend({}, module.exports.validationMessages);
 
 module.exports.setMessages = function(messages) {
 	module.exports.validationMessages = messages;
@@ -46,7 +46,7 @@ function pushMessage(messages, matcher, value, path, parameters, messageObject, 
 	if(customMessage) {
 		message = customMessage;
 	} else if(typeof module.exports.validationMessages[matcher.split(':')[0]] === 'string') {
-		message = module.exports.validationMessages[matcher];
+		message = module.exports.validationMessages[matcher.split(':')[0]];
 	}
 
 	if(typeof value !== 'undefined') {

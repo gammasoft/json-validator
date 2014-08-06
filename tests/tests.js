@@ -1298,7 +1298,7 @@ module.exports = {
 		var object = {
 			id: 100,
 			foobar: 'value',
-			name: 42 //this will cause the validation to failß
+			name: 42 //this will cause the validation to fail
 		};
 
 		var expected = {
@@ -1417,5 +1417,33 @@ module.exports = {
 			test.equal(messages.ip[0], 'ip should be IPv4');
 			test.done();
 		});
+	},
+
+	"Can use custom erros messages after assigning them via setMessages": function(test) {
+		jsv.setMessages({
+		    'type': 'Deve ser do tipo %value',
+		    'required': 'Obrigatório',
+		    'min': 'Deve ser menor ou igual a %value',
+		    'max': 'Deve ser maior ou igual a %value',
+		    'validate': 'Inválido',
+		    'enum': 'Não é um valor permitido. Os valores possíveis são: %parameters',
+		    'output': '%path tem o valor %value',
+		    'validatorjs': '%path with value "%value" is invalid according to validator "%matcher"',
+		    'isLength': 'Deve ter tamanho entre %p0 e %p1 caracteres',
+		    'isDate': '...',
+		    'isBefore': '...',
+		    'isNumeric': '...'
+		});
+
+		var schema = {
+			name: { isLength: [2, 3] }
+		};
+
+		jsv.validate({ name: '' }, schema, function(err, messages, valid) {
+			test.ifError(err);
+			test.ok(!valid);
+			test.equal(messages.name[0], 'Deve ter tamanho entre 2 e 3 caracteres');
+			test.done();
+		})
 	}
 };

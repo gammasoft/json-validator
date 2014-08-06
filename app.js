@@ -4,7 +4,6 @@ var async = require('async'),
     validator = require('validator'),
 
     matchers = require('./matchers').matchers,
-    validationMessages = require('./matchers').validationMessages,
     pushMessage = require('./matchers').pushMessage;
 
 validator.extend('toNull', function(string) {
@@ -36,7 +35,7 @@ module.exports.setMessages = function(messages) {
 }
 
 module.exports.setMessage = function(validator, message) {
-    validationMessages[validator] = message;
+    require('./matchers').validationMessages[validator] = message;
 };
 
 module.exports.validate = function(object, schema, optionals, debug, callback) {
@@ -199,8 +198,8 @@ function validate(object, _schema, path, messages, optionals, debug, callback) {
                 }
 
                 if(!result) {
-                    if(validationMessages[matcherMethod]) {
-                        pushMessage(messages, matcherMethod, objectValue, objectPath.join('.'), params, messageObject, validationMessages[matcherMethod]);
+                    if(require('./matchers').validationMessages[matcherMethod]) {
+                        pushMessage(messages, matcherMethod, objectValue, objectPath.join('.'), params, messageObject, require('./matchers').validationMessages[matcherMethod]);
                     } else {
                         pushMessage(messages, matcherMethod + ':validatorjs', objectValue, objectPath.join('.'), params, messageObject);
                     }
