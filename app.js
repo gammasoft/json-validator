@@ -27,6 +27,11 @@ module.exports.extend = function(name, fn) {
     validator.extend(name, fn);
 };
 
+module.exports.setMessages = function(messages) {
+    //test missing
+    require('./matchers').setMessages(messages);
+}
+
 module.exports.setMessage = function(validator, message) {
     validationMessages[validator] = message;
 };
@@ -55,22 +60,22 @@ module.exports.validate = function(object, schema, optionals, debug, callback) {
         debug = false;
     }
 
+    if(typeof debug === 'function') {
+        callback = debug;
+        debug = false;
+    }
+
     return validate(object, schema, '', [], optionals, debug, callback);
 };
 
 function validate(object, _schema, path, messages, optionals, debug, callback) {
-    var schema = extend(true, {}, _schema),
+    var messageObject = {},
+        schema = extend(true, {}, _schema),
         asyncValidations = [];
 
     object = traverse(object);
 
     traverse(schema).forEach(function(node) {
-        //para implementar os defaults, a cada elemento que chegar aqui eu pego
-        //o this.parent.parent, verifico se tem type e required,
-        //se nao tiver eu adiciono os valores default
-
-        //verificar se for um object vazio
-
         if(!Array.isArray(node)){
         	return;
         }
@@ -160,7 +165,7 @@ function validate(object, _schema, path, messages, optionals, debug, callback) {
             }
 
             var objectClone = extend(true, {}, object.value),
-                match = matchers[matcherMethod].call(objectClone, node, objectValue, objectPath.join("."), messages, optionals);
+                match = matchers[matcherMethod].call(objectClone, node, objectValue, objectPath.join("."), messages, optionals, messageObject);
 
             if(['transform', 'default'].indexOf(matcherMethod) > -1) {
             	//Aqui eu posso salvar o objectPath junto com o valor transformado,
@@ -192,9 +197,9 @@ function validate(object, _schema, path, messages, optionals, debug, callback) {
 
                 if(!result) {
                     if(validationMessages[matcherMethod]) {
-                        pushMessage(messages, matcherMethod, objectValue, objectPath.join('.'), params);
+                        pushMessage(messages, matcherMethod, objectValue, objectPath.join('.'), params, messageObject);
                     } else {
-                        messages.push(objectPath.join('.') + ' with value "' + objectValue + '" is invalid according to validator "' + matcherMethod + '"');
+                        pushMessage(messages, matcherMethod + ':validatorjs', objectValue, objectPath.join('.'), params, messageObject);
                     }
                 }
             } else {
@@ -214,6 +219,79 @@ function validate(object, _schema, path, messages, optionals, debug, callback) {
     }
 
     if(callback) {
+        function generateMessageTree(messageObject) {
+            var messageTree = {};
+
+            //extract to gammautils
+            function forEachOwnProperty(object, iterator) {
+                for(var property in object){
+                    if(object.hasOwnProperty(property)) {
+                        iterator(property, object[property]);
+                    }
+                }
+            }
+
+            forEachOwnProperty(messageObject, function(property, messages) {
+                property = property.split('.');
+
+                var currentNode = messageTree;
+
+                for(var i = 0; i < property.length; i++) {
+                    var currentProperty = property[i];
+
+                    if(typeof currentNode[currentProperty] === 'undefined') {
+                        if(i === property.length - 1) {
+                            currentNode[currentProperty] = messages
+                        } else {
+                            if(/^\+?(0|[1-9]\d*)$/.test(property[i + 1])) {
+                                currentNode[currentProperty] = [];
+                            } else {
+                                currentNode[currentProperty] = {};
+                            }
+                        }
+                    }
+
+                    currentNode = currentNode[currentProperty];
+                }
+            });
+            //extract to gammautils
+            return traverse(messageTree).forEach(function(node) {
+                if(typeof node !== 'object') {
+                    return;
+                }
+
+                var nodesToOutput = Object.keys(node).filter(function(key) {
+                    return key.indexOf('__') === 0;
+                });
+
+                if(nodesToOutput.length > 0) {
+                    var numberOfProperties = 0,
+                        numberOfArrays = 0,
+                        numberOfNonArrays = 0;
+
+                    forEachOwnProperty(node, function(propertyName, object) {
+                        numberOfProperties++;
+
+                        if(Array.isArray(object) && typeof object[0] === 'object') {
+                            numberOfArrays++;
+                        } else {
+                            numberOfNonArrays++;
+                        }
+                    });
+
+                    if(numberOfProperties - numberOfArrays === nodesToOutput.length) {
+                        nodesToOutput.forEach(function(key) {
+                            delete node[key];
+                        });
+
+                        if(this.notRoot && JSON.stringify(node) === '{}') {
+                            this.remove();
+                        }
+                    }
+                }
+            });
+        }
+
         async.parallel(asyncValidations, function(err, asyncMessages) {
             if(err) {
                 return callback(err);
@@ -221,7 +299,7 @@ function validate(object, _schema, path, messages, optionals, debug, callback) {
 
             callback(null, messages.concat(asyncMessages.filter(function(asyncMessage) {
                 return asyncMessage !== '' && asyncMessage !== null && typeof asyncMessage !== 'undefined';
-            })));
+            })), generateMessageTree(messageObject));
         });
     }
 

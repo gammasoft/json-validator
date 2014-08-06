@@ -1168,5 +1168,153 @@ module.exports = {
 		test.equal(jsv.validate(adult, schema).length, 0);
 		test.equal(adult.canProceed, true);
 		test.done();
+	},
+
+	'Can redefine all error messages': function(test) {
+
+		jsv.setMessages({
+			'type': '%path is not of type %value',
+		    'required': '%path is required but was either undefined or null',
+		    'min': '%path must be greater or equals (min) %value',
+		    'max': '%path must be lesser or equals (max) %value',
+		    'validate': '%path invalid accoding to custom validator',
+		    'enum': '%path invalid: the value %value is not allowed. Allowed values are: %parameters',
+		    'output': '%path has value %value',
+		    'validatorjs': '%path with value "%value" is invalid according to validator "%matcher"'
+		});
+
+		test.done();
+	},
+
+	'Provide message tree with callback': function(test) {
+		var schema = {
+			id: {
+				output: true
+			},
+			name: {
+				required: true,
+				type: 'string'
+			},
+
+			emails: [{
+				id: { output: true },
+				value: { isEmail: true }
+			}]
+		};
+
+		var object = {
+			id: 100,
+			emails: [{
+				id: 23,
+				value: 'contact@gammasoft.com.br'
+			}, {
+				id: 71,
+				value: 'contactgammasoft.com.br'
+			}]
+		};
+
+		jsv.validate(object, schema, function(err, messages, messageTree) {
+			test.ifError(err);
+
+			var expectedMessageTree = {
+				__id: 100,
+				name: ['name is required but was either undefined or null'],
+				emails: [{
+					__id: 71,
+					value: ['"emails.1.value" with value "contactgammasoft.com.br" is invalid according to "isEmail:validatorjs" with parameters: "contactgammasoft.com.br"']
+				}]
+			};
+
+			test.deepEqual(expectedMessageTree, messageTree);
+			test.done();
+		});
+	},
+
+	'Provide message tree with callback 2': function(test) {
+		var schema = {
+			id: {
+				output: true
+			},
+			name: {
+				required: true,
+				type: 'string'
+			},
+
+			emails: [{
+				id: { output: true },
+				value: { isEmail: true }
+			}]
+		};
+
+		var object = {
+			id: 100,
+			name: 'Gammasoft'
+		};
+
+		jsv.validate(object, schema, ['emails'], function(err, messages, messageTree) {
+			test.ifError(err);
+			test.deepEqual({}, messageTree);
+			test.done();
+		});
+	},
+
+	'Can output more than one field 1': function(test) {
+		var schema = {
+			id: {
+				output: true
+			},
+			foobar: {
+				output: 'foobarAlias'
+			},
+			name: {
+				type: 'string'
+			}
+		};
+
+		var object = {
+			id: 100,
+			foobar: 'value',
+			name: 42 //this will cause the validation to failß
+		};
+
+		var expected = {
+			__id: 100,
+			__foobarAlias: 'value',
+			name: ['name is not of type string']
+		}
+
+		jsv.validate(object, schema, function(err, messages, messageTree) {
+			test.ifError(err);
+			test.deepEqual(messageTree, expected);
+			test.done();
+		});
+	},
+
+	'Can output more than one field 2': function(test) {
+		var schema = {
+			id: {
+				output: true
+			},
+			foobar: {
+				output: 'foobarAlias'
+			},
+			name: {
+				type: 'string'
+			}
+		};
+
+		var object = {
+			id: 100,
+			foobar: 'value',
+			name: 'Gammasoft'
+		};
+
+		var expected = {}
+
+		jsv.validate(object, schema, function(err, messages, messageTree) {
+			test.ifError(err);
+			test.deepEqual(messageTree, expected);
+			test.done();
+		});
 	}
 };

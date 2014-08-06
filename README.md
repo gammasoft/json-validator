@@ -6,6 +6,8 @@ Validates JSON against a schema
 [![Build Status](https://drone.io/github.com/gammasoft/json-validator/status.png)](https://drone.io/github.com/gammasoft/json-validator/latest)
 [![Build Status](https://travis-ci.org/gammasoft/json-validator.svg?branch=master)](https://travis-ci.org/gammasoft/json-validator)
 
+### THIS IS NOT YET READY FOR USE
+
 #### Introduction
 
 This module helps you to check if a JSON or a javascript object conforms to a given pattern, in an async or sync manner. Also it helps you make changes to this object (e.g. remove mask from a given field, or a assign a default value for a field).
@@ -25,7 +27,7 @@ npm install --save json-validator
 #### Usage & Examples
 
 ```javascript
-var jsvalidator = require('../app');
+var jsv = require('json-validator');
 
 var userSchema = {
   name: {
@@ -84,7 +86,7 @@ var user = {
   ipsAllowed: ['192.168.1.102   ', '0.0.0.0', 'thisIsNotAnIp']
 };
 
-jsvalidator(user, userSchema, function(err, messages) {
+jsv.validate(user, userSchema, function(err, messages) {
   if(err) {
     throw err;
   }
