@@ -1,6 +1,10 @@
 var jsv = require("../app");
 
 module.exports = {
+	'tearDown': function(cb) {
+		cb();
+	},
+
 	"Single test": function(test){
 		var schema = {
 			name: { type: "string", required: true },
@@ -899,9 +903,13 @@ module.exports = {
 			}
 		};
 
-		jsv.validate({ username: 'gammasoft' }, schema, function(err, messages) {
+		jsv.validate({ username: 'gammasoft' }, schema, function(err, messages, valid, messageList) {
 			test.ifError(err);
-			test.equal(messages.length, 1);
+			test.ok(!valid);
+			test.deepEqual(messages, {
+				username: ['username: "gammasoft" is already taken']
+			});
+			test.equal(messageList.length, 1);
 			test.done();
 		});
 	},
@@ -933,9 +941,11 @@ module.exports = {
 			},
 		};
 
-		jsv.validate({ username: 'gammasoft' }, schema, function(err, messages) {
+		jsv.validate({ username: 'gammasoft' }, schema, function(err, messages, valid, messageList) {
 			test.ifError(err);
-			test.equal(messages.length, 0);
+			test.ok(valid);
+			test.deepEqual(messages, {});
+			test.equal(messageList.length, 0);
 			test.done();
 		});
 	},
@@ -956,11 +966,22 @@ module.exports = {
 		};
 
 		var object = {
-			emails: ['gammasoft', 'foo', 'renatoargh', 'bar']
+			emails: ['gammasoft', 'foo', 'renatoargh', 'bar', 'bong']
 		};
 
-		jsv.validate(object, schema, function(err, messages) {
-			test.equal(messages.length, 2);
+		jsv.validate(object, schema, function(err, messages, isValid, messageList) {
+			test.ifError(err);
+			test.ok(!isValid);
+
+			/* CRAZY JS BEHAVIOR */
+			var array = [];
+			array[2] = null;
+			array[0] = ['emails.0: "gammasoft" already taken'];
+			array[2] = ['emails.2: "renatoargh" already taken'];
+			/* CRAZY JS BEHAVIOR */
+
+			test.deepEqual(messages, { emails: array });
+			test.equal(messageList.length, 2);
 			test.done();
 		})
 	},
@@ -973,9 +994,11 @@ module.exports = {
 
 		var object = { name: "Renato", age: 26 };
 
-		jsv.validate(object, schema, function(err, messages) {
+		jsv.validate(object, schema, function(err, messages, valid, messageList) {
 			test.ifError(err);
-			test.equal(messages.length, 0);
+			test.ok(valid);
+			test.deepEqual(messages, {});
+			test.equal(messageList.length, 0);
 			test.done();
 		});
 	},
@@ -1213,19 +1236,19 @@ module.exports = {
 			}]
 		};
 
-		jsv.validate(object, schema, function(err, messages, messageTree) {
+		var expected = {
+			__id: 100,
+			name: ['name is required but was either undefined or null'],
+			emails: [{
+				__id: 71,
+				value: ['"emails.1.value" with value "contactgammasoft.com.br" is invalid according to "isEmail:validatorjs" with parameters: "contactgammasoft.com.br"']
+			}]
+		};
+
+		jsv.validate(object, schema, function(err, messages, isValid, messageList) {
 			test.ifError(err);
-
-			var expectedMessageTree = {
-				__id: 100,
-				name: ['name is required but was either undefined or null'],
-				emails: [{
-					__id: 71,
-					value: ['"emails.1.value" with value "contactgammasoft.com.br" is invalid according to "isEmail:validatorjs" with parameters: "contactgammasoft.com.br"']
-				}]
-			};
-
-			test.deepEqual(expectedMessageTree, messageTree);
+			test.ok(!isValid);
+			test.deepEqual(messages, expected);
 			test.done();
 		});
 	},
@@ -1251,9 +1274,10 @@ module.exports = {
 			name: 'Gammasoft'
 		};
 
-		jsv.validate(object, schema, ['emails'], function(err, messages, messageTree) {
+		jsv.validate(object, schema, ['emails'], function(err, messages, isValid, messageList) {
 			test.ifError(err);
-			test.deepEqual({}, messageTree);
+			test.ok(isValid);
+			test.deepEqual(messages, {});
 			test.done();
 		});
 	},
@@ -1283,9 +1307,10 @@ module.exports = {
 			name: ['name is not of type string']
 		}
 
-		jsv.validate(object, schema, function(err, messages, messageTree) {
+		jsv.validate(object, schema, function(err, messages, isValid, messageList) {
 			test.ifError(err);
-			test.deepEqual(messageTree, expected);
+			test.ok(!isValid);
+			test.deepEqual(messages, expected);
 			test.done();
 		});
 	},
@@ -1311,9 +1336,10 @@ module.exports = {
 
 		var expected = {}
 
-		jsv.validate(object, schema, function(err, messages, messageTree) {
+		jsv.validate(object, schema, function(err, messages, isValid, messageList) {
 			test.ifError(err);
-			test.deepEqual(messageTree, expected);
+			test.ok(isValid);
+			test.deepEqual(messages, expected);
 			test.done();
 		});
 	},
@@ -1330,10 +1356,11 @@ module.exports = {
 			}
 		};
 
-		jsv.validate({ name: 'Foo Bar' }, schema, function(err, messages, messageTree) {
+		jsv.validate({ name: 'Foo Bar' }, schema, function(err, messages, isValid, messageList) {
 			test.ifError(err);
-			test.equal(messages.length, 1);
-			test.deepEqual(messageTree, {
+			test.ok(!isValid);
+			test.equal(messageList.length, 1);
+			test.deepEqual(messages, {
 				name: ['Must be "Gammasoft"']
 			});
 			test.done();
@@ -1355,12 +1382,39 @@ module.exports = {
 			}
 		};
 
-		jsv.validate({ name: 'Foo Bar' }, schema, function(err, messages, messageTree) {
+		jsv.validate({ name: 'Foo Bar' }, schema, function(err, messages, isValid, messageList) {
 			test.ifError(err);
-			test.equal(messages.length, 1);
-			test.deepEqual(messageTree, {
+			test.ok(!isValid);
+			test.equal(messageList.length, 1);
+			test.deepEqual(messages, {
 				name: ['name must be "Gammasoft"']
 			});
+			test.done();
+		});
+	},
+
+	'Can use individual parameters in error messages 1': function(test) {
+		var schema = { name: { isLength: [2, 4] } };
+
+		jsv.setMessage('isLength', '%path should have length between %p0 and %p1');
+		jsv.validate({ name: '' }, schema, function(err, messages, valid) {
+
+			test.ifError(err);
+			test.ok(!valid);
+			test.equal(messages.name[0], 'name should have length between 2 and 4');
+			test.done();
+		});
+	},
+
+	'Can use individual parameters in error messages 2': function(test) {
+		var schema = { ip: { isIP: [4] } };
+
+		jsv.setMessage('isIP', '%path should be IPv%p0');
+		jsv.validate({ ip: 'foobar' }, schema, function(err, messages, valid) {
+
+			test.ifError(err);
+			test.ok(!valid);
+			test.equal(messages.ip[0], 'ip should be IPv4');
 			test.done();
 		});
 	}

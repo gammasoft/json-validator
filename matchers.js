@@ -1,9 +1,10 @@
 var validationMessages = require('./app').messages,
+	extend = require('extend');
 	util = require("util");
 
-validationMessages = {
+module.exports.validationMessages = {
 	'type': '%path is not of type %value',
-    'required': '%path is required but was either undefined or null',
+	'required': '%path is required but was either undefined or null',
     'min': '%path must be greater or equals (min) %value',
     'max': '%path must be lesser or equals (max) %value',
     'validate': '%path invalid accoding to custom validator',
@@ -11,10 +12,32 @@ validationMessages = {
     'output': '%path has value %value',
     'validatorjs': '%path with value "%value" is invalid according to validator "%matcher"'
 };
-module.exports.validationMessages = validationMessages;
+
+validationMessagesBackup = extend({}, module.exports.validationMessages);
 
 module.exports.setMessages = function(messages) {
 	module.exports.validationMessages = messages;
+}
+
+module.exports.resetMessages = function() {
+	module.exports.validationMessages = validationMessagesBackup;
+}
+
+function applyParametersToMessage(message, value, parameters) {
+
+	if(!Array.isArray(parameters)) {
+		return message;
+	}
+
+	if(parameters[0] === value) {
+		parameters = parameters.slice(1);
+	}
+
+	parameters.forEach(function(parameter, index) {
+		message = message.replace(new RegExp('%p' + index, 'g'), parameter);
+	});
+
+	return message;
 }
 
 function pushMessage(messages, matcher, value, path, parameters, messageObject, customMessage) {
@@ -35,6 +58,7 @@ function pushMessage(messages, matcher, value, path, parameters, messageObject, 
 	}
 
 	if(typeof parameters !== 'undefined') {
+		message = applyParametersToMessage(message, value, parameters);
 		message = message.replace(/%parameters/g, (parameters || '').toString());
 	}
 

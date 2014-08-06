@@ -27,8 +27,11 @@ module.exports.extend = function(name, fn) {
     validator.extend(name, fn);
 };
 
+module.exports.resetMessages = function() {
+    require('./matchers').resetMessages();
+}
+
 module.exports.setMessages = function(messages) {
-    //test missing
     require('./matchers').setMessages(messages);
 }
 
@@ -197,7 +200,7 @@ function validate(object, _schema, path, messages, optionals, debug, callback) {
 
                 if(!result) {
                     if(validationMessages[matcherMethod]) {
-                        pushMessage(messages, matcherMethod, objectValue, objectPath.join('.'), params, messageObject);
+                        pushMessage(messages, matcherMethod, objectValue, objectPath.join('.'), params, messageObject, validationMessages[matcherMethod]);
                     } else {
                         pushMessage(messages, matcherMethod + ':validatorjs', objectValue, objectPath.join('.'), params, messageObject);
                     }
@@ -297,7 +300,10 @@ function validate(object, _schema, path, messages, optionals, debug, callback) {
                 return callback(err);
             }
 
-            callback(null, messages, generateMessageTree(messageObject));
+            var messageTree = generateMessageTree(messageObject),
+                isValid = JSON.stringify(messageTree) === '{}';
+
+            callback(null, messageTree, isValid, messages);
         });
     }
 
