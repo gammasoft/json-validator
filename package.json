@@ -1,6 +1,6 @@
 {
   "name": "json-validator",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "description": "Validates JSON against a schema",
   "main": "app.js",
   "directories": {
