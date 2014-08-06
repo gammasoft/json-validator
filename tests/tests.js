@@ -1316,5 +1316,52 @@ module.exports = {
 			test.deepEqual(messageTree, expected);
 			test.done();
 		});
+	},
+
+	"Verifiy that sync custom validators returns their messages": function(test) {
+		var schema = {
+			name: {
+				validate: function(value) {
+					return {
+						isValid: value === 'Gammasoft',
+						message: 'Must be "Gammasoft"'
+					};
+				}
+			}
+		};
+
+		jsv.validate({ name: 'Foo Bar' }, schema, function(err, messages, messageTree) {
+			test.ifError(err);
+			test.equal(messages.length, 1);
+			test.deepEqual(messageTree, {
+				name: ['Must be "Gammasoft"']
+			});
+			test.done();
+		});
+	},
+
+	"Verifiy that async custom validators returns their messages": function(test) {
+		var schema = {
+			name: {
+				asyncValidate: function(value, path, callback) {
+					setTimeout(function() {
+						if(value !== 'Gammasoft') {
+							return callback(null, path + ' must be "Gammasoft"');
+						} else {
+							callback(null, null);
+						}
+					}, 10);
+				}
+			}
+		};
+
+		jsv.validate({ name: 'Foo Bar' }, schema, function(err, messages, messageTree) {
+			test.ifError(err);
+			test.equal(messages.length, 1);
+			test.deepEqual(messageTree, {
+				name: ['name must be "Gammasoft"']
+			});
+			test.done();
+		});
 	}
 };

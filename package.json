@@ -1,6 +1,6 @@
 {
   "name": "json-validator",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "description": "Validates JSON against a schema",
   "main": "app.js",
   "directories": {
@@ -34,7 +34,7 @@
       "name": "Renato Gama",
       "email": "renatoargh@gmail.com",
       "url": "https://github.com/renatoargh",
-      "contributions": 30,
+      "contributions": 32,
       "hireable": true
     }
   ]

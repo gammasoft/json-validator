@@ -222,7 +222,7 @@ function validate(object, _schema, path, messages, optionals, debug, callback) {
         function generateMessageTree(messageObject) {
             var messageTree = {};
 
-            //extract to gammautils
+            //extract to gammautils as unflat array
             function forEachOwnProperty(object, iterator) {
                 for(var property in object){
                     if(object.hasOwnProperty(property)) {
@@ -297,9 +297,7 @@ function validate(object, _schema, path, messages, optionals, debug, callback) {
                 return callback(err);
             }
 
-            callback(null, messages.concat(asyncMessages.filter(function(asyncMessage) {
-                return asyncMessage !== '' && asyncMessage !== null && typeof asyncMessage !== 'undefined';
-            })), generateMessageTree(messageObject));
+            callback(null, messages, generateMessageTree(messageObject));
         });
     }
 

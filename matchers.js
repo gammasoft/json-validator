@@ -17,10 +17,12 @@ module.exports.setMessages = function(messages) {
 	module.exports.validationMessages = messages;
 }
 
-function pushMessage(messages, matcher, value, path, parameters, messageObject) {
+function pushMessage(messages, matcher, value, path, parameters, messageObject, customMessage) {
 	var message = '"%path" with value "%value" is invalid according to "' + matcher + '" with parameters: "%parameters"';
 
-	if(typeof module.exports.validationMessages[matcher.split(':')[0]] === 'string') {
+	if(customMessage) {
+		message = customMessage;
+	} else if(typeof module.exports.validationMessages[matcher.split(':')[0]] === 'string') {
 		message = module.exports.validationMessages[matcher];
 	}
 
@@ -115,13 +117,17 @@ module.exports.matchers = {
 		return match;
 	},
 
-	asyncValidate: function(fn, object, objectPath, messages) {
+	asyncValidate: function(fn, object, objectPath, messages, optionals, messageObject) {
 		var that = this;
 
 		return function(cb) {
 			fn.call(that, object, objectPath, function(err, message) {
 				if(err) {
 					return cb(err);
+				}
+
+				if(message !== '' && message !== null && typeof message !== 'undefined') {
+					pushMessage(messages, 'validate', '', objectPath, object, messageObject, message);
 				}
 
 				cb(null, message);
@@ -152,7 +158,7 @@ module.exports.matchers = {
 
 		if(!result.isValid) {
 			if(typeof result.message !== "undefined") {
-				messages.push(result.message);
+				pushMessage(messages, 'validate', '', objectPath, object, messageObject, result.message);
 			} else {
 				pushMessage(messages, 'validate', '', objectPath, object, messageObject);
 			}
