@@ -288,6 +288,10 @@ function validate(object, _schema, path, messages, optionals, debug, callback) {
 
                         if(this.notRoot && JSON.stringify(node) === '{}') {
                             this.remove();
+
+                            if(this.parent && Array.isArray(this.parent.node) && this.parent.node.length === 0) {
+                                this.parent.remove();
+                            }
                         }
                     }
                 }

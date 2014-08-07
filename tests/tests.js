@@ -1445,5 +1445,105 @@ module.exports = {
 			test.equal(messages.name[0], 'Deve ter tamanho entre 2 e 3 caracteres');
 			test.done();
 		})
-	}
+	},
+
+	'Can use validator.js method in custom validator': function(test) {
+		var schema = {
+			name: {
+				validate: function(value, path, validator) {
+					return {
+						isValid: validator.isAlpha(value) && validator.isLowercase(value),
+						message: '%path is invalid'
+					}
+				}
+			}
+		};
+
+		test.equal(jsv.validate({ name: 'gammasoft' }, schema).length, 0);
+		test.equal(jsv.validate({ name: 'NOPE' }, schema).length, 1);
+		test.done();
+	},
+
+	'When there is "output" in nested schema array and there is no errors then should not return empty array': function(test) {
+
+		var schema = {
+			emails: [{
+				id: {
+					required: false,
+					output: true
+				},
+
+				value: {
+					required: true,
+					type: 'string',
+					isLength: [5, 100],
+					isEmail: true,
+					asyncValidate: function(email, path, cb) {
+						setTimeout(function() {
+							cb(null, null);
+						}, 10);
+					}
+				}
+			}]
+		};
+
+		var object = {
+		    emails: [{
+		            id: '8a50b88ba03b46cf6a1cc5ac1b03721',
+		            value: 'qwdf@gmail.com'
+	        }]
+		};
+
+		jsv.validate(object, schema, function(err, messages, valid) {
+			test.ifError(err);
+			test.ok(valid);
+			test.deepEqual(messages, {});
+			test.done();
+		});
+	},
+
+	'Works properly when there is "output" in nested arrays with errors': function(test) {
+		var schema = {
+			emails: [{
+				id: {
+					required: false,
+					output: true
+				},
+
+				value: {
+					required: true,
+					type: 'string',
+					isLength: [5, 100],
+					isEmail: true,
+					asyncValidate: function(email, path, cb) {
+						setTimeout(function() {
+							cb(null, null);
+						}, 10);
+					}
+				}
+			}]
+		};
+
+		var object = {
+		    emails: [{
+		            id: '8a50b88ba03b46cf6a1cc5ac1b03721',
+		            value: 'asdf'
+	        }]
+		};
+
+		jsv.validate(object, schema, function(err, messages, valid) {
+			test.ifError(err);
+			test.ok(!valid);
+			test.deepEqual(messages, {
+				emails: [{
+					__id: '8a50b88ba03b46cf6a1cc5ac1b03721',
+					value: [
+						'Deve ter tamanho entre 5 e 100 caracteres',
+	          			'"emails.0.value" with value "asdf" is invalid according to "isEmail:validatorjs" with parameters: "asdf"'
+	          		]
+				}]
+			});
+			test.done();
+		});
+	},
 };

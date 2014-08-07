@@ -1,4 +1,5 @@
 var validationMessages = require('./app').messages,
+	validator = require('validator'),
 	extend = require('extend');
 	util = require("util");
 
@@ -178,7 +179,7 @@ module.exports.matchers = {
 	},
 
 	validate: function(fn, object, objectPath, messages, optionals, messageObject) {
-		var result = fn.call(this, object, objectPath);
+		var result = fn.call(this, object, objectPath, validator);
 
 		if(!result.isValid) {
 			if(typeof result.message !== "undefined") {
