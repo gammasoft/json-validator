@@ -1489,8 +1489,8 @@ module.exports = {
 
 		var object = {
 		    emails: [{
-		            id: '8a50b88ba03b46cf6a1cc5ac1b03721',
-		            value: 'qwdf@gmail.com'
+	            id: '8a50b88ba03b46cf6a1cc5ac1b03721',
+	            value: 'qwdf@gmail.com'
 	        }]
 		};
 
@@ -1546,4 +1546,127 @@ module.exports = {
 			test.done();
 		});
 	},
+
+	'When there is "output" in nested schema array and there is no errors then should not return empty array 2': function(test) {
+
+		var schema = {
+			emails: [{
+				id: {
+					required: false,
+					output: true
+				},
+
+				value: {
+					required: true,
+					type: 'string',
+					isLength: [5, 100],
+					isEmail: true,
+					asyncValidate: function(email, path, cb) {
+						setTimeout(function() {
+							cb(null, null);
+						}, 10);
+					}
+				}
+			}]
+		};
+
+		var object = {
+		    emails: [{
+	            id: '9c5fae0db986a64d91e787e52973bf77',
+	            value: 'renato@gammasoft.com.br'
+	        }, {
+	            id: '98a5cee7a1165d061630d220844f4585',
+	            value: 'support@gmail.com'
+	        }]
+		};
+
+		jsv.validate(object, schema, function(err, messages, valid) {
+			test.ifError(err);
+			test.ok(valid);
+			test.deepEqual(messages, {});
+			test.done();
+		});
+	},
+
+	'When there is "output" in nested schema array and there is no errors then should not return empty array 2': function(test) {
+
+		var schema = {
+			emails: [{
+				id: {
+					required: false,
+					output: true
+				},
+
+				value: {
+					required: true,
+					type: 'string',
+					isEmail: true,
+					asyncValidate: function(email, path, cb) {
+						setTimeout(function() {
+							cb(null, null);
+						}, 10);
+					}
+				}
+			}]
+		};
+
+		var object = {
+		    emails: [{
+	            id: '9c5fae0db986a64d91e787e52973bf77',
+	            value: 'renato@gammasoft.com.br'
+	        }, {
+	            id: '12345679187236475123841523784651',
+	            value: 'asdf'
+	        }, {
+	            id: '98a5cee7a1165d061630d220844f4585',
+	            value: 'support@gmail.com'
+	        }]
+		};
+
+		jsv.validate(object, schema, function(err, messages, valid) {
+			test.ifError(err);
+			test.ok(!valid);
+			test.deepEqual(messages, {
+				emails: [{
+					__id: '12345679187236475123841523784651',
+					value: [
+	          			'"emails.1.value" with value "asdf" is invalid according to "isEmail:validatorjs" with parameters: "asdf"'
+	          		]
+				}]
+			});
+			test.done();
+		});
+	},
+
+
+	'Can use array of custom validator': function(test) {
+
+		var validationOne = function(name) {
+			return {
+				isValid: false,
+				message: 'This will fail'
+			}
+		};
+
+		var validationTwo = function(name) {
+			return {
+				isValid: false,
+				message: 'This will also fail'
+			}
+		};
+
+		var schema = {
+			name: {
+				validate: []
+			}
+		};
+
+		jsv.validate({ name: 'foo' }, schema, function(err, messages, valid) {
+			test.ifError(err);
+			test.ok(!valid);
+			test.deepEqual(messages.name, ['This will fail', 'This will also fail']);
+			test.done();
+		});
+
+	}
 };

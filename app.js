@@ -262,6 +262,27 @@ function validate(object, _schema, path, messages, optionals, debug, callback) {
                     return;
                 }
 
+                if(Array.isArray(node)) {
+                    var children = node.length,
+                        traversed = 0;
+
+                    this.post(function() {
+                        traversed++;
+
+                        if(children === traversed) {
+                            var newNode = node.filter(function(elemento) {
+                                return elemento !== null && typeof elemento !== 'undefined'
+                            });
+
+                            if(newNode.length === 0) {
+                                this.remove();
+                            } else {
+                                this.update(newNode);
+                            }
+                        }
+                    });
+                }
+
                 var nodesToOutput = Object.keys(node).filter(function(key) {
                     return key.indexOf('__') === 0;
                 });
@@ -287,10 +308,14 @@ function validate(object, _schema, path, messages, optionals, debug, callback) {
                         });
 
                         if(this.notRoot && JSON.stringify(node) === '{}') {
-                            this.remove();
+                            if(this.parent && Array.isArray(this.parent.node)) {
+                                this.update(null);
 
-                            if(this.parent && Array.isArray(this.parent.node) && this.parent.node.length === 0) {
-                                this.parent.remove();
+                                if(this.parent.node.length === 0) {
+                                    this.parent.remove();
+                                }
+                            } else {
+                                this.remove();
                             }
                         }
                     }
