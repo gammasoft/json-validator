@@ -178,18 +178,30 @@ module.exports.matchers = {
 		}
 	},
 
-	validate: function(fn, object, objectPath, messages, optionals, messageObject) {
-		var result = fn.call(this, object, objectPath, validator);
+	validate: function(functions, object, objectPath, messages, optionals, messageObject) {
 
-		if(!result.isValid) {
-			if(typeof result.message !== "undefined") {
-				pushMessage(messages, 'validate', '', objectPath, object, messageObject, result.message);
-			} else {
-				pushMessage(messages, 'validate', '', objectPath, object, messageObject);
-			}
+		if(!Array.isArray(functions)) {
+			functions = [functions];
 		}
 
-		return result.isValid;
+		var that = this,
+			isValid = true;
+
+		functions.forEach(function(fn) {
+			var result = fn.call(that, object, objectPath, validator);
+
+			if(!result.isValid) {
+				if(typeof result.message !== "undefined") {
+					pushMessage(messages, 'validate', '', objectPath, object, messageObject, result.message);
+				} else {
+					pushMessage(messages, 'validate', '', objectPath, object, messageObject);
+				}
+			}
+
+			isValid = isValid && result.isValid;
+		});
+
+		return isValid;
 	},
 
 	transform: function(fn, object, objectPath, messages) {

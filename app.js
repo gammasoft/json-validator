@@ -105,7 +105,7 @@ function validate(object, _schema, path, messages, optionals, debug, callback) {
     }
 
     traverse(schema).forEach(function(node){
-        if(this.parent && (this.parent.key === 'enum' || this.parent.key === 'transform')) {
+        if(this.parent && (this.parent.key === 'enum' || this.parent.key === 'transform' || this.parent.key === 'validate')) {
             //if parent is enum do not continue to its parameters
             return;
         }
@@ -115,7 +115,7 @@ function validate(object, _schema, path, messages, optionals, debug, callback) {
             return;
         }
 
-        var shouldContinue = Array.isArray(node) && (this.key === 'enum' || this.key === 'transform' || validator[this.key]);
+        var shouldContinue = Array.isArray(node) && (this.key === 'enum' || this.key === 'transform' || this.key === 'validate' || validator[this.key]);
 
         if(typeof node === "object" && !shouldContinue) {
            return;
@@ -208,7 +208,7 @@ function validate(object, _schema, path, messages, optionals, debug, callback) {
                 object.set(objectPath, result);
             }
         } else {
-            process.stdout.write("json-validator: Warning: validator '" + matcherMethod + "' was not found. Skipping!");
+            console.warn("json-validator: Warning: validator '" + matcherMethod + "' was not found. Skipping!");
         }
 
         if(debug) {

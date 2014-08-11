@@ -1646,9 +1646,9 @@ module.exports = {
 				isValid: false,
 				message: 'This will fail'
 			}
-		};
+		},
 
-		var validationTwo = function(name) {
+		validationTwo = function(name) {
 			return {
 				isValid: false,
 				message: 'This will also fail'
@@ -1657,7 +1657,7 @@ module.exports = {
 
 		var schema = {
 			name: {
-				validate: []
+				validate: [validationOne, validationTwo]
 			}
 		};
 
