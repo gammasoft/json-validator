@@ -1638,7 +1638,6 @@ module.exports = {
 		});
 	},
 
-
 	'Can use array of custom validator': function(test) {
 
 		var validationOne = function(name) {
@@ -1667,6 +1666,74 @@ module.exports = {
 			test.deepEqual(messages.name, ['This will fail', 'This will also fail']);
 			test.done();
 		});
+	},
 
+	'When validating arrays, context object (this) should be array element': function(test) {
+		var schema = {
+			pets: [{
+				name: {
+					validate: function(name) {
+						return {
+							isValid: ['dog', 'horse', 'cat'].indexOf(this.kind) > -1,
+							message: ''
+						};
+					}
+				}
+			}]
+		};
+
+		var object = {
+			pets: [
+				{ name: 'Adam', kind: 'dog' },
+				{ name: 'Chevete', kind: 'horse' },
+				{ name: 'Oliver', kind: 'cat' }
+			]
+		};
+
+		jsv.validate(object, schema, function(err, messages, valid) {
+			test.ifError(err);
+			test.ok(valid);
+			test.deepEqual(messages, {});
+			test.done();
+		});
+	},
+
+	'When validating arrays, context object (this) should be array element 2': function(test) {
+		var schema = {
+			my: [{
+				name: {
+					type: 'string',
+					required: true
+				},
+				pets: [{
+					breed: {
+						validate: function(name) {
+							return {
+								isValid: ['dog', 'horse', 'cat'].indexOf(this.kind) > -1,
+								message: ''
+							};
+						}
+					}
+				}]
+			}]
+		};
+
+		var object = {
+			my: [{
+				name: 'Renato',
+				pets: [
+					{ kind: 'fish' },
+					{ kind: 'horse' },
+					{ kind: 'cat' }
+				]
+			}]
+		};
+
+		jsv.validate(object, schema, function(err, messages, valid) {
+			test.ifError(err);
+			test.ok(!valid);
+			test.deepEqual(messages, { my: [ { pets: [ { breed: [ 'Inválido' ] } ] } ] });
+			test.done();
+		});
 	}
 };
