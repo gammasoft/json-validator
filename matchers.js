@@ -178,7 +178,13 @@ module.exports.matchers = {
 		}
 	},
 
-	validate: function(functions, object, objectPath, messages, optionals, messageObject) {
+	prevent: function(shouldPrevent, object, objectPath, messages, optionals, messageObject, preventNext) {
+		if(shouldPrevent) {
+			preventNext();
+		}
+	},
+
+	validate: function(functions, object, objectPath, messages, optionals, messageObject, preventNext) {
 
 		if(!Array.isArray(functions)) {
 			functions = [functions];
@@ -188,7 +194,7 @@ module.exports.matchers = {
 			isValid = true;
 
 		functions.forEach(function(fn) {
-			var result = fn.call(that, object, objectPath, validator);
+			var result = fn.call(that, object, objectPath, validator, preventNext);
 
 			if(!result.isValid) {
 				if(typeof result.message !== "undefined") {

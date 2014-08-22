@@ -1735,5 +1735,83 @@ module.exports = {
 			test.deepEqual(messages, { my: [ { pets: [ { breed: [ 'Inválido' ] } ] } ] });
 			test.done();
 		});
+	},
+
+	'Can prevent next validators by calling preventNext within validate': function(test) {
+		var schema = {
+			type: {
+				required: true,
+				type: 'boolean'
+			},
+			age: {
+				validate: function(age, path, validator, preventNext) {
+					var isValid = true;
+
+					if(this.type === 'human' && !age) {
+						isValid = false;
+						preventNext();
+					}
+
+					return {
+						isValid: isValid,
+						message: 'Humans must say their age'
+					}
+				},
+				isNumeric: true,
+				isLength: 2
+			}
+		}
+
+		var obj = {
+			type: 'human'
+		}
+
+		jsv.validate(obj, schema, function(err, messages, valid) {
+			test.ifError(err);
+			test.equals(valid, false);
+			test.equals(messages.age.length, 1);
+			test.equals(typeof schema.age.skip, 'undefined');
+			test.done();
+		});
+	},
+
+	'Can prevent next validators (if there is at least one error message already added) by using "prevent: true"': function(test) {
+		var schema = {
+			code: {
+				isLength: [4],
+				prevent: true,
+				isNumeric: true
+			}
+		};
+
+		var object = {
+			code: 'ABC'
+		};
+
+		jsv.validate(object, schema, function(err, messages, valid) {
+			test.ifError(err);
+			test.equals(valid, false);
+			test.equals(messages.code.length, 1);
+			test.done();
+		})
+	},
+
+	'Can validate specific different lengths': function(test) {
+		var schema = {
+			name: {
+				specificLengths: [2, 4, 6, 8]
+			}
+		}
+
+		test.equal(jsv.validate({ name: '' }, schema).length, 1);
+		test.equal(jsv.validate({ name: 'R' }, schema).length, 1);
+		test.equal(jsv.validate({ name: 'Re' }, schema).length, 0);
+		test.equal(jsv.validate({ name: 'Ren' }, schema).length, 1);
+		test.equal(jsv.validate({ name: 'Rena' }, schema).length, 0);
+		test.equal(jsv.validate({ name: 'Renat' }, schema).length, 1);
+		test.equal(jsv.validate({ name: 'Renato' }, schema).length, 0);
+		test.equal(jsv.validate({ name: 'Renato ' }, schema).length, 1);
+		test.equal(jsv.validate({ name: 'Renato G' }, schema).length, 0);
+		test.done();
 	}
 };

@@ -6,8 +6,13 @@ var async = require('async'),
     matchers = require('./matchers').matchers,
     pushMessage = require('./matchers').pushMessage;
 
+validator.extend('specificLengths', function(string) {
+    var lengths = Array.prototype.slice.call(arguments, 1);
+    return lengths.indexOf(string.length) > -1;
+});
+
 validator.extend('toNull', function(string) {
-    if(string === '') {
+    if(!string) {
         return null;
     }
 
@@ -105,7 +110,12 @@ function validate(object, _schema, path, messages, optionals, debug, callback) {
     }
 
     traverse(schema).forEach(function(node){
-        if(this.parent && (this.parent.key === 'enum' || this.parent.key === 'transform' || this.parent.key === 'validate')) {
+
+        var matchersThatShouldNotContinue = [
+            'enum', 'transform', 'validate'
+        ];
+
+        if(this.parent && matchersThatShouldNotContinue.indexOf(this.parent.key) > -1) {
             //if parent is enum do not continue to its parameters
             return;
         }
@@ -126,6 +136,12 @@ function validate(object, _schema, path, messages, optionals, debug, callback) {
         objectPath.pop();
 
         var objectValue = object.get(objectPath);
+
+        if( this.parent &&
+            'skip' in this.parent.node &&
+            this.parent.node['skip'] === true ) {
+            return;
+        }
 
         if( this.parent && //tem um pai e
             'required' in this.parent.node && //o pai tem "required" e
@@ -166,13 +182,18 @@ function validate(object, _schema, path, messages, optionals, debug, callback) {
                 node = compose(node.reverse());
             }
 
-            var objectClone = extend(true, {}, object.value);
+            var that = this;
+                objectClone = extend(true, {}, object.value);
 
             if(this.parent && this.parent.parent && this.parent.parent.parent && Array.isArray(this.parent.parent.parent.node)) {
                 objectClone = extend(true, {}, object.get(this.parent.parent.path));
             }
 
-            var match = matchers[matcherMethod].call(objectClone, node, objectValue, objectPath.join("."), messages, optionals, messageObject);
+            function preventNext() {
+                that.parent.node['skip'] = true;
+            }
+
+            var match = matchers[matcherMethod].call(objectClone, node, objectValue, objectPath.join("."), messages, optionals, messageObject, preventNext);
 
             if(['transform', 'default'].indexOf(matcherMethod) > -1) {
             	//Aqui eu posso salvar o objectPath junto com o valor transformado,
@@ -213,7 +234,7 @@ function validate(object, _schema, path, messages, optionals, debug, callback) {
                 object.set(objectPath, result);
             }
         } else {
-            console.warn("json-validator: Warning: validator '" + matcherMethod + "' was not found. Skipping!");
+            console.warn("\x1B[1m\x1B[31mjson-validator:\x1B[22m\x1B[39m Warning: validator '" + matcherMethod + "' was not found. Skipping!");
         }
 
         if(debug) {
