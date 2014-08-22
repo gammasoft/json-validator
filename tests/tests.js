@@ -1858,5 +1858,34 @@ module.exports = {
 		test.equal(jsv.validate({ name: 'Renato ' }, schema).length, 1);
 		test.equal(jsv.validate({ name: 'Renato G' }, schema).length, 0);
 		test.done();
+	},
+
+	'Can use function to pass custom message when type is enum': function(test) {
+		jsv.setMessages({
+		    'type': 'Deve ser do tipo %value',
+		    'required': 'Obrigatório',
+		    'min': 'Deve ser menor ou igual a %value',
+		    'max': 'Deve ser maior ou igual a %value',
+		    'validate': 'Inválido',
+		    'enum': function(value, path, parameters) {
+		    	return 'Invalid! Parameters were: ' + parameters.join(' and ');
+		    },
+		    'output': '%path tem o valor %value',
+		    'validatorjs': '%path with value "%value" is invalid according to validator "%matcher"',
+		    'isLength': 'Deve ter tamanho entre %p0 e %p1 caracteres',
+		    'isDate': 'Value must be date',
+		    'isBefore': 'Valu must be before',
+		    'isNumeric': 'Value must be numeric',
+		    'isIP': 'Value must be valid IP'
+		});
+
+		var schema = {
+			type: {
+				enum: ['a', 'b']
+			}
+		};
+
+		test.equal(jsv.validate({ type: 'c' }, schema)[0], 'Invalid! Parameters were: a and b');
+		test.done();
 	}
 };

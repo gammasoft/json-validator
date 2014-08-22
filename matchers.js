@@ -45,7 +45,7 @@ function pushMessage(messages, matcher, value, path, parameters, messageObject, 
 
 	if(customMessage) {
 		message = customMessage;
-	} else if(typeof module.exports.validationMessages[matcher.split(':')[0]] === 'string') {
+	} else if(module.exports.validationMessages[matcher.split(':')[0]]) {
 		message = module.exports.validationMessages[matcher.split(':')[0]];
 	}
 
@@ -237,7 +237,7 @@ module.exports.matchers = {
 
 	enum: function(allowedValues, value, objectPath, messages, optionals, messageObject) {
 		if(allowedValues.indexOf(value) === -1) {
-			pushMessage(messages, 'enum', '', objectPath, allowedValues.join(', '), messageObject);
+			pushMessage(messages, 'enum', '', objectPath, allowedValues, messageObject);
 		}
 	}
 };
