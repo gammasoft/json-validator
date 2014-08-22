@@ -1203,10 +1203,28 @@ module.exports = {
 		    'validate': '%path invalid accoding to custom validator',
 		    'enum': '%path invalid: the value %value is not allowed. Allowed values are: %parameters',
 		    'output': '%path has value %value',
+		    'specificLengths': function(value, path, parameters) {
+		    	return 'Must have specific length of either ' + parameters.splice(1).join(', ')
+		    },
 		    'validatorjs': '%path with value "%value" is invalid according to validator "%matcher"'
 		});
 
 		test.done();
+	},
+
+	'Can have a function to define error message': function(test) {
+		var schema = {
+			name: {
+				specificLengths: [4, 6, 8]
+			}
+		}
+
+		jsv.validate({ name: 'Gamma'}, schema, function(err, messages, valid) {
+			test.ifError(err);
+			test.equal(valid, false);
+			test.equal(messages.name[0], 'Must have specific length of either 4, 6, 8');
+			test.done();
+		});
 	},
 
 	'Provide message tree with callback': function(test) {
@@ -1430,9 +1448,10 @@ module.exports = {
 		    'output': '%path tem o valor %value',
 		    'validatorjs': '%path with value "%value" is invalid according to validator "%matcher"',
 		    'isLength': 'Deve ter tamanho entre %p0 e %p1 caracteres',
-		    'isDate': '...',
-		    'isBefore': '...',
-		    'isNumeric': '...'
+		    'isDate': 'Value must be date',
+		    'isBefore': 'Valu must be before',
+		    'isNumeric': 'Value must be numeric',
+		    'isIP': 'Value must be valid IP'
 		});
 
 		var schema = {
@@ -1775,7 +1794,7 @@ module.exports = {
 		});
 	},
 
-	'Can prevent next validators (if there is at least one error message already added) by using "prevent: true"': function(test) {
+	'Can prevent next validators by using "prevent: true"': function(test) {
 		var schema = {
 			code: {
 				isLength: [4],
@@ -1793,7 +1812,31 @@ module.exports = {
 			test.equals(valid, false);
 			test.equals(messages.code.length, 1);
 			test.done();
-		})
+		});
+	},
+
+	'Can prevent next validators (if there is at least one error message already added) by using "prevent: true"': function(test) {
+		var schema = {
+			code: {
+				required: true,
+				isLength: [4, 4],
+				prevent1: 'ifError',
+				isNumeric: true,
+				prevent2: 'ifError',
+				isIP: true
+			}
+		};
+
+		test.equal(jsv.validate({ code: 'ABC' }, schema).length, 1);
+		test.equal(jsv.validate({ code: 'ABC' }, schema)[0], 'Deve ter tamanho entre 4 e 4 caracteres');
+
+		test.equal(jsv.validate({ code: 'ABCD' }, schema).length, 1);
+		test.equal(jsv.validate({ code: 'ABCD' }, schema)[0], 'Value must be numeric');
+
+		test.equal(jsv.validate({ code: '1234' }, schema).length, 1);
+		test.equal(jsv.validate({ code: '1234' }, schema)[0], 'Value must be valid IP');
+
+		test.done();
 	},
 
 	'Can validate specific different lengths': function(test) {
@@ -1803,6 +1846,8 @@ module.exports = {
 			}
 		}
 
+		test.equal(jsv.validate({ name: null }, schema).length, 1);
+		test.equal(jsv.validate({ name: undefined }, schema).length, 1);
 		test.equal(jsv.validate({ name: '' }, schema).length, 1);
 		test.equal(jsv.validate({ name: 'R' }, schema).length, 1);
 		test.equal(jsv.validate({ name: 'Re' }, schema).length, 0);

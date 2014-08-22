@@ -25,7 +25,6 @@ module.exports.resetMessages = function() {
 }
 
 function applyParametersToMessage(message, value, parameters) {
-
 	if(!Array.isArray(parameters)) {
 		return message;
 	}
@@ -48,6 +47,10 @@ function pushMessage(messages, matcher, value, path, parameters, messageObject, 
 		message = customMessage;
 	} else if(typeof module.exports.validationMessages[matcher.split(':')[0]] === 'string') {
 		message = module.exports.validationMessages[matcher.split(':')[0]];
+	}
+
+	if(typeof message === 'function') {
+		message = message(value, path, parameters);
 	}
 
 	if(typeof value !== 'undefined') {
@@ -180,6 +183,12 @@ module.exports.matchers = {
 
 	prevent: function(shouldPrevent, object, objectPath, messages, optionals, messageObject, preventNext) {
 		if(shouldPrevent) {
+			var hasNoMessages = typeof messageObject[objectPath] === 'undefined' || messageObject[objectPath].length === 0;
+
+			if(shouldPrevent === 'ifError' && hasNoMessages) {
+				return;
+			}
+
 			preventNext();
 		}
 	},

@@ -162,6 +162,10 @@ function validate(object, _schema, path, messages, optionals, debug, callback) {
 
         var matcherMethod = this.path.pop();
 
+        if(matcherMethod.indexOf('prevent') === 0) {
+            matcherMethod = 'prevent';
+        }
+
         if(matchers[matcherMethod]) {
 
             if(matcherMethod === 'transform' && Array.isArray(node)) {
