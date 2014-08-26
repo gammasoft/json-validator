@@ -193,6 +193,22 @@ module.exports.matchers = {
 		}
 	},
 
+	unset: function(shouldUnset, object, objectPath, messages, optionals, messageObject, preventNext) {
+		if(shouldUnset === 'ifNullOrUndefined' && (object === null || typeof object === 'undefined')) {
+			preventNext();
+			return true;
+		} else if(typeof shouldUnset === 'function') {
+			var unset = shouldUnset.call(this, object);
+			if(unset) {
+				preventNext();
+			}
+
+			return unset;
+		} else {
+			return false;
+		}
+	},
+
 	validate: function(functions, object, objectPath, messages, optionals, messageObject, preventNext) {
 
 		if(!Array.isArray(functions)) {

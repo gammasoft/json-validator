@@ -6,6 +6,27 @@ var async = require('async'),
     matchers = require('./matchers').matchers,
     pushMessage = require('./matchers').pushMessage;
 
+function deepDelete(object, property) {
+    if(typeof object === 'undefined') {
+        return false;
+    }
+
+    if(!Array.isArray(property)) {
+        property = property.split('.');
+    }
+
+    if(property.length > 1) {
+        return deepDelete(object[property.shift()], property);
+    } else {
+        if(typeof object[property[0] !== 'undefined']) {
+            delete object[property[0]];
+            return true;
+        } else {
+            return false;
+        }
+    }
+}
+
 validator.extend('specificLengths', function(string) {
     var lengths = Array.prototype.slice.call(arguments, 1);
     return lengths.indexOf(string.length) > -1;
@@ -198,6 +219,13 @@ function validate(object, _schema, path, messages, optionals, debug, callback) {
             }
 
             var match = matchers[matcherMethod].call(objectClone, node, objectValue, objectPath.join("."), messages, optionals, messageObject, preventNext);
+
+            if(matcherMethod === 'unset' && match === true) {
+                //unset returns true or false;
+                // true - remove
+                // false - do not remove
+                deepDelete(object.value, objectPath)
+            }
 
             if(['transform', 'default'].indexOf(matcherMethod) > -1) {
             	//Aqui eu posso salvar o objectPath junto com o valor transformado,

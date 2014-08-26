@@ -1687,6 +1687,36 @@ module.exports = {
 		});
 	},
 
+	'Can use array of custom validator 2': function(test) {
+
+		var validationOne = function(name) {
+			return {
+				isValid: false,
+				message: 'This will fail'
+			}
+		},
+
+		validationTwo = function(name) {
+			return {
+				isValid: true,
+				message: 'This wont fail'
+			}
+		};
+
+		var schema = {
+			name: {
+				validate: [validationOne, validationTwo]
+			}
+		};
+
+		jsv.validate({ name: 'foo' }, schema, function(err, messages, valid) {
+			test.ifError(err);
+			test.ok(!valid);
+			test.deepEqual(messages.name, ['This will fail']);
+			test.done();
+		});
+	},
+
 	'When validating arrays, context object (this) should be array element': function(test) {
 		var schema = {
 			pets: [{
@@ -1887,5 +1917,66 @@ module.exports = {
 
 		test.equal(jsv.validate({ type: 'c' }, schema)[0], 'Invalid! Parameters were: a and b');
 		test.done();
-	}
+	},
+
+	'Can unset a property if null or underfined': function(test) {
+		var schema = {
+			name: {
+				unset: 'ifNullOrUndefined',
+				isNumeric: true
+			}
+		};
+
+		var object = {
+			name: null
+		}
+
+		var result = jsv.validate(object, schema);
+
+		test.equal(typeof object.name, 'undefined');
+		test.equal(JSON.stringify(object), '{}');
+		test.equal(result.length, 0);
+		test.done();
+	},
+
+	'Can unset a property if null or underfined 2': function(test) {
+		var schema = {
+			name: {
+				unset: 'ifNullOrUndefined'
+			}
+		};
+
+		var object = {
+			name: 'Do not unset'
+		}
+
+		jsv.validate(object, schema);
+
+		test.equal(typeof object.name, 'string');
+		test.equal(object.name, 'Do not unset');
+		test.done();
+	},
+
+	'Can pass a function to determine if should unset, context object should be the validating object': function(test) {
+		var schema = {
+			age: {
+				required: true
+			},
+			name: {
+				unset: function() {
+					return this.age > 18;
+				}
+			}
+		};
+
+		var object = {
+			name: 'Renato',
+			age: 27
+		}
+
+		jsv.validate(object, schema);
+
+		test.equal(typeof object.name, 'undefined');
+		test.done();
+	},
 };
