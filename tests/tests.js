@@ -1979,4 +1979,95 @@ module.exports = {
 		test.equal(typeof object.name, 'undefined');
 		test.done();
 	},
+
+	'Can use async transforms': function(test) {
+		var schema = {
+			number: {
+				type: 'number',
+				asyncTransform: function(number, path, cb) {
+					setTimeout(function() {
+						cb(null, number + 10);
+					}, 25);
+				}
+			}
+		};
+
+		var object = { number: 10 };
+
+		jsv.validate(object, schema, function(err, messages, valid) {
+			test.ifError(err);
+			test.ok(valid);
+			test.equal(object.number, 20);
+			test.done();
+		});
+	},
+
+	'Can use async transforms 2': function(test) {
+		var schema = {
+			location: {
+				city: {
+					asyncTransform: function(city, path, cb) {
+						setTimeout(function() {
+							cb(null, 'Rio');
+						}, 25);
+					}
+				}
+			}
+		};
+
+		var object = { location: { city: 'Brasília' } };
+
+		jsv.validate(object, schema, function(err, messages, valid) {
+			test.ifError(err);
+			test.ok(valid);
+			test.equal(object.location.city, 'Rio');
+			test.done();
+		});
+	},
+
+	'Can use async transforms in arrays': function(test) {
+		var schema = {
+			numbers: [{
+				type: 'number',
+				asyncTransform: function(number, path, cb) {
+					setTimeout(function() {
+						cb(null, number * number);
+					}, 25);
+				}
+			}]
+		};
+
+		var object = { numbers: [1, 2, 3, 4] };
+
+		jsv.validate(object, schema, function(err, messages, valid) {
+			test.ifError(err);
+			test.ok(valid);
+			test.deepEqual(object.numbers, [1, 4, 9, 16]);
+			test.done();
+		});
+	},
+
+	'Can use async transforms in deeply nested object': function(test) {
+		var schema = {
+			numbers: [{
+				value: {
+					type: 'number',
+					asyncTransform: function(number, path, cb) {
+						setTimeout(function() {
+							cb(null, number * number);
+						}, 25);
+					}
+				}
+			}]
+		};
+
+		var object = { numbers: [{ value: 1 }, { value: 2 }] };
+
+		jsv.validate(object, schema, function(err, messages, valid) {
+			test.ifError(err);
+			test.ok(valid);
+			test.deepEqual(object.numbers, [{ value: 1 }, { value: 4 }]);
+			test.done();
+		});
+	},
 };

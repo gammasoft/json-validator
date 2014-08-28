@@ -6,6 +6,34 @@ var async = require('async'),
     matchers = require('./matchers').matchers,
     pushMessage = require('./matchers').pushMessage;
 
+function deepSet(object, property, value) {
+
+    if(typeof object === 'undefined' || object === null) {
+        return false;
+    }
+
+    if(!Array.isArray(property)) {
+        property = property.split('.');
+    }
+
+    if(property.length > 1) {
+        var currentProperty = property.shift();
+
+        if(typeof object[currentProperty] === 'undefined') {
+            if(/\d+/.test(property[0])) {
+                object[currentProperty] = [];
+            } else {
+                object[currentProperty] = {};
+            }
+        }
+
+        return deepSet(object[currentProperty], property, value);
+    } else {
+        object[property.shift()] = value;
+        return true;
+    }
+}
+
 function deepDelete(object, property) {
     if(typeof object === 'undefined') {
         return false;
@@ -99,7 +127,8 @@ module.exports.validate = function(object, schema, optionals, debug, callback) {
 function validate(object, _schema, path, messages, optionals, debug, callback) {
     var messageObject = {},
         schema = extend(true, {}, _schema),
-        asyncValidations = [];
+        asyncValidations = [],
+        asyncTransformations = [];
 
     object = traverse(object);
 
@@ -237,6 +266,8 @@ function validate(object, _schema, path, messages, optionals, debug, callback) {
             	object.set(objectPath, match);
             } else if(['asyncValidate'].indexOf(matcherMethod) > -1) {
                 asyncValidations.push(match);
+            } else if(['asyncTransform'].indexOf(matcherMethod) > -1) {
+                asyncTransformations.push(match);
             }
         } else if(validator[matcherMethod]) {
             var params = [objectValue],
@@ -314,7 +345,7 @@ function validate(object, _schema, path, messages, optionals, debug, callback) {
                     currentNode = currentNode[currentProperty];
                 }
             });
-            //extract to gammautils
+
             return traverse(messageTree).forEach(function(node) {
                 if(typeof node !== 'object') {
                     return;
@@ -389,7 +420,19 @@ function validate(object, _schema, path, messages, optionals, debug, callback) {
             var messageTree = generateMessageTree(messageObject),
                 isValid = JSON.stringify(messageTree) === '{}';
 
-            callback(null, messageTree, isValid, messages);
+            async.parallel(asyncTransformations, function(err, newValues) {
+                if(err) {
+                    return callback(err);
+                }
+
+                newValues.forEach(function(transform) {
+                    deepSet(object.value, transform.path, transform.newValue);
+                });
+
+                console.log(JSON.stringify(newValues, null, 4));
+
+                callback(null, messageTree, isValid, messages);
+            });
         });
     }
 

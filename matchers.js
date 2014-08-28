@@ -235,6 +235,23 @@ module.exports.matchers = {
 		return isValid;
 	},
 
+	asyncTransform: function(fn, object, objectPath, messages, optionals, messageObject) {
+		var that = this;
+
+		return function(cb) {
+			fn.call(that, object, objectPath, function(err, newValue) {
+				if(err) {
+					return cb(err);
+				}
+
+				cb(null, {
+					path: objectPath,
+					newValue: newValue
+				});
+			});
+		}
+	},
+
 	transform: function(fn, object, objectPath, messages) {
 		return fn.call(this, object);
 	},
