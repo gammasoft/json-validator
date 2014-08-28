@@ -429,8 +429,6 @@ function validate(object, _schema, path, messages, optionals, debug, callback) {
                     deepSet(object.value, transform.path, transform.newValue);
                 });
 
-                console.log(JSON.stringify(newValues, null, 4));
-
                 callback(null, messageTree, isValid, messages);
             });
         });
