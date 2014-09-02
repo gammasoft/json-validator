@@ -1,6 +1,7 @@
 var validationMessages = require('./app').messages,
 	validator = require('validator'),
-	extend = require('extend');
+	utils = require('gammautils'),
+	deepMerge = utils.object.deepMerge,
 	util = require("util");
 
 module.exports.validationMessages = {
@@ -14,7 +15,7 @@ module.exports.validationMessages = {
     'validatorjs': '%path with value "%value" is invalid according to validator "%matcher"'
 };
 
-var validationMessagesBackup = extend({}, module.exports.validationMessages);
+var validationMessagesBackup = deepMerge({}, module.exports.validationMessages);
 
 module.exports.setMessages = function(messages) {
 	module.exports.validationMessages = messages;

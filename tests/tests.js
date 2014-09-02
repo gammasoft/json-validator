@@ -2070,4 +2070,68 @@ module.exports = {
 			test.done();
 		});
 	},
+
+	'Can extend schemas': function(test) {
+
+		var schema1 = {
+			status: {
+				required: false
+			}
+		};
+
+		var schema2 = {
+			status: {
+				required: true,
+				isLength: [2]
+			}
+		};
+
+		test.equal(jsv.validate({}, [schema1, schema2]).length, 2);
+		test.equal(jsv.validate({ status: 'ok' }, [schema1, schema2]).length, 0);
+		test.done();
+	},
+
+	'Can extend schemas 2': function(test) {
+
+		var schema1 = {
+			person: {
+				favoriteColors: [{
+					rgb: {
+						required: true
+					}
+				}]
+			}
+		};
+
+		var schema2 = {
+			person: {
+				name: {
+					required: true
+				},
+				favoriteColors: [{
+					hex: {
+						required: true,
+						isLength: [6]
+					}
+				}]
+			}
+		};
+
+
+		test.equal(jsv.validate({ person: { favoriteColors: [{ rgb: '123' }] }}, [schema1]).length, 0);
+		test.equal(jsv.validate({ person: { favoriteColors: [{ rgb: '123' }] }}, [schema1, schema2]).length, 3);
+		test.equal(jsv.validate({
+			person: {
+				name: 'Renato',
+				favoriteColors: [{
+					rgb: '123',
+					hex: 'FFFFFF'
+				}, {
+					rgb: '321',
+					hex: 'FFFFFD'
+				}]
+			}
+		}, [schema1, schema2]).length, 0);
+		test.done();
+	},
 };

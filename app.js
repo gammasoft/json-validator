@@ -1,59 +1,15 @@
 var async = require('async'),
     traverse = require('traverse'),
-    extend = require('extend'),
     validator = require('validator'),
+    utils = require('gammautils'),
+    forEachOwnProperty = utils.object.forEachOwnProperty,
+    deepSet = utils.object.deepSet,
+    deepMerge = utils.object.deepMerge,
+    deepDelete = utils.object.deepDelete,
+    unflatten = utils.object.unflatten,
 
     matchers = require('./matchers').matchers,
     pushMessage = require('./matchers').pushMessage;
-
-function deepSet(object, property, value) {
-
-    if(typeof object === 'undefined' || object === null) {
-        return false;
-    }
-
-    if(!Array.isArray(property)) {
-        property = property.split('.');
-    }
-
-    if(property.length > 1) {
-        var currentProperty = property.shift();
-
-        if(typeof object[currentProperty] === 'undefined') {
-            if(/\d+/.test(property[0])) {
-                object[currentProperty] = [];
-            } else {
-                object[currentProperty] = {};
-            }
-        }
-
-        return deepSet(object[currentProperty], property, value);
-    } else {
-        object[property.shift()] = value;
-        return true;
-    }
-}
-
-function deepDelete(object, property) {
-    if(typeof object === 'undefined') {
-        return false;
-    }
-
-    if(!Array.isArray(property)) {
-        property = property.split('.');
-    }
-
-    if(property.length > 1) {
-        return deepDelete(object[property.shift()], property);
-    } else {
-        if(typeof object[property[0] !== 'undefined']) {
-            delete object[property[0]];
-            return true;
-        } else {
-            return false;
-        }
-    }
-}
 
 validator.extend('specificLengths', function(string) {
     var lengths = Array.prototype.slice.call(arguments, 1);
@@ -125,8 +81,14 @@ module.exports.validate = function(object, schema, optionals, debug, callback) {
 };
 
 function validate(object, _schema, path, messages, optionals, debug, callback) {
+    if(!Array.isArray(_schema)) {
+        _schema = [_schema];
+    }
+
     var messageObject = {},
-        schema = extend(true, {}, _schema),
+        schema = _schema.reduce(function(previous, current) {
+            return deepMerge(previous, current);
+        }, {}),
         asyncValidations = [],
         asyncTransformations = [];
 
@@ -237,10 +199,10 @@ function validate(object, _schema, path, messages, optionals, debug, callback) {
             }
 
             var that = this;
-                objectClone = extend(true, {}, object.value);
+                objectClone = deepMerge({}, object.value);
 
             if(this.parent && this.parent.parent && this.parent.parent.parent && Array.isArray(this.parent.parent.parent.node)) {
-                objectClone = extend(true, {}, object.get(this.parent.parent.path));
+                objectClone = deepMerge({}, object.get(this.parent.parent.path));
             }
 
             function preventNext() {
@@ -311,40 +273,8 @@ function validate(object, _schema, path, messages, optionals, debug, callback) {
 
     if(callback) {
         function generateMessageTree(messageObject) {
-            var messageTree = {};
 
-            //extract to gammautils as unflat array
-            function forEachOwnProperty(object, iterator) {
-                for(var property in object){
-                    if(object.hasOwnProperty(property)) {
-                        iterator(property, object[property]);
-                    }
-                }
-            }
-
-            forEachOwnProperty(messageObject, function(property, messages) {
-                property = property.split('.');
-
-                var currentNode = messageTree;
-
-                for(var i = 0; i < property.length; i++) {
-                    var currentProperty = property[i];
-
-                    if(typeof currentNode[currentProperty] === 'undefined') {
-                        if(i === property.length - 1) {
-                            currentNode[currentProperty] = messages
-                        } else {
-                            if(/^\+?(0|[1-9]\d*)$/.test(property[i + 1])) {
-                                currentNode[currentProperty] = [];
-                            } else {
-                                currentNode[currentProperty] = {};
-                            }
-                        }
-                    }
-
-                    currentNode = currentNode[currentProperty];
-                }
-            });
+            var messageTree = unflatten(messageObject);
 
             return traverse(messageTree).forEach(function(node) {
                 if(typeof node !== 'object') {
