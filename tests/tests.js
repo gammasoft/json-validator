@@ -2134,4 +2134,47 @@ module.exports = {
 		}, [schema1, schema2]).length, 0);
 		test.done();
 	},
+
+	'Can specify polimorfic validations': function(test) {
+
+		var polimorfic = {
+			'cash': {
+				amount: {
+					required: true,
+					min: 0
+				}
+			},
+
+			'credit': {
+				amount: {
+					required: true,
+					min: 10
+				}
+			}
+		};
+
+		var schema = {
+			payments: [function(object) {
+				return polimorfic[object.type];
+			}]
+		};
+
+		var object = {
+			payments: [{
+				type: 'cash',
+				amount: 1
+			}, {
+				type: 'credit',
+				amount: 5
+			}]
+		};
+
+		jsv.validate(object, schema, function(err, messages, valid) {
+			test.ifError(err);
+			test.ok(!valid);
+			test.equal(messages.payments[0], null);
+			test.equal(messages.payments.length, 2);
+			test.done();
+		});
+	}
 };

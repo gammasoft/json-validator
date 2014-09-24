@@ -105,17 +105,30 @@ function validate(object, _schema, path, messages, optionals, debug, callback) {
         	return;
         }
 
-        this.update(fixArray(node, array.length));
+        this.update(fixArray(node, array, this.path));
     });
 
-    function fixArray(array, times) {
+    function fixArray(array, actualArray, path) {
+
+        var times = actualArray.length;
+
         if(times === 0) {
         	return [];
         }
 
-        var object = array[0];
-        for (var i = 0; i < times - 1; i++) {
-            array.push(object);
+        var object = array[0],
+            isFunction = typeof object === 'function';
+
+        if(isFunction) {
+            array = [];
+        }
+
+        for (var i = 0; i < times - (isFunction ? 0 : 1); i++) {
+            if(isFunction) {
+                array.push(object(actualArray[i]));
+            } else {
+                array.push(object);
+            }
         }
 
         return array;
