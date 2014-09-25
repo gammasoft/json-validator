@@ -254,6 +254,14 @@ function validate(object, _schema, path, messages, optionals, debug, callback) {
                 shouldInvert = !node;
             }
 
+            params = params.map(function(param) {
+                if(typeof param === 'function') {
+                    param = param.apply(deepMerge({}, object.value));
+                }
+
+                return param;
+            });
+
             var result = validator[matcherMethod].apply(null, params);
 
             if(typeof result === 'boolean' && matcherMethod !== 'toBoolean') {

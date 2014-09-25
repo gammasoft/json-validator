@@ -2176,5 +2176,31 @@ module.exports = {
 			test.equal(messages.payments.length, 2);
 			test.done();
 		});
-	}
+	},
+
+	'It is possible to provide a parameter by evaluating a function': function(test) {
+
+		function findLength() {
+			return this.type === 'premium' ? 5 : 3;
+		}
+
+		var schema = {
+			name: {
+				required: true,
+				isLength: [findLength, findLength]
+			},
+
+			type: {
+				required: true,
+				enum: ['premium', 'basic']
+			}
+		};
+
+		test.equal(jsv.validate({ name: '123', type: 'premium' }, schema).length, 1);
+		test.equal(jsv.validate({ name: '12345', type: 'basic' }, schema).length, 1);
+		// test.equal(jsv.validate({ name: '123', type: 'basic' }, schema).length, 0);
+		// test.equal(jsv.validate({ name: '12345', type: 'premium' }, schema).length, 0);
+
+		test.done();
+	},
 };
