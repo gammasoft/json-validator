@@ -8,7 +8,7 @@ Validates JSON against a schema
 [![Build Status](https://drone.io/github.com/gammasoft/json-validator/status.png)](https://drone.io/github.com/gammasoft/json-validator/latest)
 [![Build Status](https://travis-ci.org/gammasoft/json-validator.svg?branch=master)](https://travis-ci.org/gammasoft/json-validator) ![http://img.shields.io/npm/dm/json-validator.svg](http://img.shields.io/npm/dm/json-validator.svg)
 
-### THIS IS NOT YET READY FOR USE
+### This is a work in progress, use with caution.
 
 #### Introduction
 
@@ -123,6 +123,9 @@ The above example gives the following output:
 ]
 ```
 
+#### Related Projects
+
+http://opensource.gammasoft.com.br (full list of my projects in GitHub)
 
 #### License
 
