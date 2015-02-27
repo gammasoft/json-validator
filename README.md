@@ -1,6 +1,8 @@
 json-validator
 ==============
 
+[![Join the chat at https://gitter.im/gammasoft/json-validator](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/gammasoft/json-validator?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Validates JSON against a schema
 
 [![Build Status](https://drone.io/github.com/gammasoft/json-validator/status.png)](https://drone.io/github.com/gammasoft/json-validator/latest)
