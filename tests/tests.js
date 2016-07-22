@@ -1,4 +1,5 @@
 var jsv = require("../app");
+var NULL = jsv.NULL;
 
 module.exports = {
 	'tearDown': function(cb) {
@@ -731,7 +732,7 @@ module.exports = {
 		var object2 = { safeHtml: '<div style="someCss: true" />&nbsp;' };
 
 		test.ok(jsv.validate(object2, schema1).length === 0);
-		test.equal(object2.safeHtml, '&lt;div style=&quot;someCss: true&quot; /&gt;&amp;nbsp;');
+		test.equal(object2.safeHtml, '&lt;div style=&quot;someCss: true&quot; &#x2F;&gt;&amp;nbsp;');
 
 		test.done();
 	},
@@ -2178,29 +2179,48 @@ module.exports = {
 		});
 	},
 
-	'It is possible to provide a parameter by evaluating a function': function(test) {
+    'It is possible to provide a parameter by evaluating a function': function(test) {
 
-		function findLength() {
-			return this.type === 'premium' ? 5 : 3;
-		}
+        function findLength() {
+            return this.type === 'premium' ? 5 : 3;
+        }
 
+        var schema = {
+            name: {
+                required: true,
+                isLength: [findLength, findLength]
+            },
+
+            type: {
+                required: true,
+                enum: ['premium', 'basic']
+            }
+        };
+
+        test.equal(jsv.validate({ name: '123', type: 'premium' }, schema).length, 1);
+        test.equal(jsv.validate({ name: '12345', type: 'basic' }, schema).length, 1);
+        // test.equal(jsv.validate({ name: '123', type: 'basic' }, schema).length, 0);
+        // test.equal(jsv.validate({ name: '12345', type: 'premium' }, schema).length, 0);
+
+        test.done();
+    },
+
+	'Enum can validate null values': function(test) {
 		var schema = {
 			name: {
-				required: true,
-				isLength: [findLength, findLength]
-			},
-
-			type: {
-				required: true,
-				enum: ['premium', 'basic']
+				enum: [NULL, 'foo', 'bar']
 			}
 		};
 
-		test.equal(jsv.validate({ name: '123', type: 'premium' }, schema).length, 1);
-		test.equal(jsv.validate({ name: '12345', type: 'basic' }, schema).length, 1);
-		// test.equal(jsv.validate({ name: '123', type: 'basic' }, schema).length, 0);
-		// test.equal(jsv.validate({ name: '12345', type: 'premium' }, schema).length, 0);
+		test.equal(jsv.validate({ name: 'foo' }, schema).length, 0);
+        test.equal(jsv.validate({ name: 'bar' }, schema).length, 0);
 
-		test.done();
+        jsv.validate({ name: null }, schema, function(err, messages, valid) {
+            console.log(JSON.stringify(messages, null, 4));
+
+            test.ifError(err);
+            test.ok(valid);
+            test.done();
+        });
 	},
 };

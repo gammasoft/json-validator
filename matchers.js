@@ -1,4 +1,5 @@
 var validationMessages = require('./app').messages,
+    NULL = require('./constants').NULL,
 	validator = require('validator'),
 	utils = require('gammautils'),
 	deepMerge = utils.object.deepMerge,
@@ -270,8 +271,10 @@ module.exports.matchers = {
 	},
 
 	enum: function(allowedValues, value, objectPath, messages, optionals, messageObject) {
-		if(allowedValues.indexOf(value) === -1) {
-			pushMessage(messages, 'enum', '', objectPath, allowedValues, messageObject);
-		}
+        var consideredValue = value || NULL;
+
+        if(allowedValues.indexOf(consideredValue) === -1) {
+            pushMessage(messages, 'enum', '', objectPath, allowedValues, messageObject);
+        }
 	}
 };

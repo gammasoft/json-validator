@@ -8,6 +8,7 @@ var async = require('async'),
     deepDelete = utils.object.deepDelete,
     unflatten = utils.object.unflatten,
 
+    constants = require('./constants'),
     matchers = require('./matchers').matchers,
     pushMessage = require('./matchers').pushMessage;
 
@@ -31,6 +32,8 @@ validator.extend('toUpperCase', function(string) {
 validator.extend('toLowerCase', function(string) {
     return string.toLowerCase();
 });
+
+module.exports.NULL = constants.NULL;
 
 module.exports.extend = function(name, fn) {
     validator.extend(name, fn);
