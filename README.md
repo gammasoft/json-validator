@@ -10,6 +10,8 @@ Validates JSON against a schema
 
 ### This is a work in progress, use with caution.
 
+Go check the demo: https://json-validator-demo.herokuapp.com/
+
 #### Introduction
 
 This module helps you to check if a JSON or a javascript object conforms to a given pattern, in an async or sync manner. Also it helps you make changes to this object (e.g. remove mask from a given field, or a assign a default value for a field).
