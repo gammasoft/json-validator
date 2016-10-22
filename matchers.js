@@ -13,6 +13,7 @@ module.exports.validationMessages = {
     'validate': '%path invalid accoding to custom validator',
     'enum': '%path invalid: the value %value is not allowed. Allowed values are: %parameters',
     'output': '%path has value %value',
+    'choiceGroup': '%path belongs to group %value and was already provided',
     'validatorjs': '%path with value "%value" is invalid according to validator "%matcher"'
 };
 
@@ -164,6 +165,10 @@ module.exports.matchers = {
 			});
 		}
 	},
+
+    choiceGroup: function() {
+        return true;
+    },
 
 	output: function(fn, value, objectPath, messages, optionals, messageObject) {
 		if(fn) {

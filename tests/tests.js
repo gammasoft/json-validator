@@ -18,7 +18,7 @@ module.exports = {
 		test.done();
 	},
 
-	"Single test missing required field": function(test){
+	"Single test missing required field": function(test) {
 		var schema = {
 			name: { type: "string", required: true },
 			age: { type: "number", required: true }
@@ -762,17 +762,63 @@ module.exports = {
 		test.done();
 	},
 
-	"Can assign default value": function(test) {
+    "Can assign default value": function(test) {
+        var schema = {
+            name: {
+                default: 'not specified'
+            }
+        };
+
+        var object = {};
+
+        test.equal(jsv.validate(object, schema).length, 0);
+        test.equal(object.name, 'not specified');
+        test.done();
+    },
+
+    "Can assign default value even if atribute is not required and nested": function(test) {
+        var schema = {
+            name: {
+                required: true,
+                prevent: 'ifError',
+                first: {
+                    default: 'will work',
+                    required: false
+                },
+                another: {
+                    oneMore: {
+                        required: true
+                    }
+                }
+            }
+        };
+
+        var object = {
+            name: {
+                another: {
+                    oneMore: 'ok'
+                }
+            }
+        };
+
+        test.equal(jsv.validate(object, schema).length, 0);
+        test.equal(object.name.first, 'will work');
+        test.done();
+    },
+
+	"Can assign default value if atribute is enum": function(test) {
 		var schema = {
-			name: {
-				default: 'not specified'
+			theValue: {
+			    default: 'two',
+                required: false,
+                enum: ['one', 'two', 'three']
 			}
 		};
 
 		var object = {};
 
 		test.equal(jsv.validate(object, schema).length, 0);
-		test.equal(object.name, 'not specified');
+		test.equal(object.theValue, 'two');
 		test.done();
 	},
 
@@ -2205,22 +2251,482 @@ module.exports = {
         test.done();
     },
 
-	'Enum can validate null values': function(test) {
+    'Enum can validate null values': function(test) {
+        var schema = {
+            name: {
+                enum: [NULL, 'foo', 'bar']
+            }
+        };
+
+        test.equal(jsv.validate({ name: 'foo' }, schema).length, 0);
+        test.equal(jsv.validate({ name: 'bar' }, schema).length, 0);
+
+        jsv.validate({ name: null }, schema, function(err, messages, valid) {
+            test.ifError(err);
+            test.ok(valid);
+            test.done();
+        });
+    },
+
+	'Enum can validate null values after transform': function(test) {
 		var schema = {
+            transform: function () {
+                return null;
+            },
 			name: {
 				enum: [NULL, 'foo', 'bar']
 			}
 		};
 
 		test.equal(jsv.validate({ name: 'foo' }, schema).length, 0);
-        test.equal(jsv.validate({ name: 'bar' }, schema).length, 0);
-
-        jsv.validate({ name: null }, schema, function(err, messages, valid) {
-            console.log(JSON.stringify(messages, null, 4));
-
-            test.ifError(err);
-            test.ok(valid);
-            test.done();
-        });
+        test.done();
 	},
+
+    'Will validate if more than one choice is provided 1': function(test){
+        var schema = {
+            option1: {
+                type: "string",
+                choiceGroup: 'groupId'
+            },
+
+            option2: {
+                type: "string",
+                choiceGroup: 'groupId'
+            },
+
+            option3: {
+                type: "string",
+                choiceGroup: 'groupId'
+            }
+        };
+
+        var object = { option1: 'ok', option2: 'ok', option3: 'ok' };
+        var messages = jsv.validate(object, schema, false);
+
+        test.equal(messages.length, 2);
+        test.done();
+    },
+
+    'Will validate if more than one choice is provided 2': function(test) {
+        var schema = {
+            option1: {
+                type: "string",
+                choiceGroup: 'groupId'
+            },
+
+            option2: {
+                type: "string",
+                choiceGroup: 'groupId'
+            },
+
+            option3: {
+                type: "string",
+                choiceGroup: 'groupId'
+            }
+        };
+
+        var object = { option1: 'ok', option2: 'ok' };
+        var messages = jsv.validate(object, schema, false);
+
+        test.equal(messages.length, 1);
+        test.done();
+    },
+
+    'Will validate if only one choice is provided': function(test) {
+        var schema = {
+            option1: {
+                type: "string",
+                choiceGroup: 'groupId'
+            },
+
+            option2: {
+                type: "string",
+                choiceGroup: 'groupId'
+            },
+
+            option3: {
+                type: "string",
+                choiceGroup: 'groupId'
+            }
+        };
+
+        var object = { option1: 'ok' };
+        var messages = jsv.validate(object, schema, false);
+
+        test.equal(messages.length, 0);
+        test.done();
+    },
+
+    'Will validate if no choice is provided and there is no required element': function(test){
+        var schema = {
+            option1: {
+                type: "string",
+                choiceGroup: 'groupId'
+            },
+
+            option2: {
+                type: "string",
+                choiceGroup: 'groupId'
+            },
+
+            option3: {
+                type: "string",
+                choiceGroup: 'groupId'
+            },
+
+            dontCare: {
+                type: 'string'
+            }
+        };
+
+        var object = { name: "Renato", age: 26 };
+        var messages = jsv.validate(object, schema, false);
+
+        test.equal(messages.length, 0);
+        test.done();
+    },
+
+    'Will not validate if at least one element is required but none is provided 1': function(test){
+        var schema = {
+            option1: {
+                type: "string",
+                requiredChoiceGroup: true,
+                choiceGroup: 'groupId'
+            },
+
+            option2: {
+                type: "string",
+                choiceGroup: 'groupId'
+            },
+
+            option3: {
+                type: "string",
+                choiceGroup: 'groupId'
+            }
+        };
+
+        var object = { name: "Renato", age: 26 };
+        var messages = jsv.validate(object, schema, false);
+
+        test.equal(messages.length, 1);
+        test.done();
+    },
+
+    'Will not validate if at least one element is required but none is provided 2': function(test){
+        var schema = {
+            option1: {
+                type: "string",
+                requiredChoiceGroup: true,
+                choiceGroup: 'groupId'
+            },
+
+            option2: {
+                type: "string",
+                requiredChoiceGroup: true,
+                choiceGroup: 'groupId'
+            },
+
+            option3: {
+                type: "string",
+                choiceGroup: 'groupId'
+            }
+        };
+
+        var object = { name: "Renato", age: 26 };
+        var messages = jsv.validate(object, schema, false);
+
+        test.equal(messages.length, 1);
+        test.done();
+    },
+
+    'Will not validate if at least one element is required but none is provided 3': function(test){
+        var schema = {
+            option1: {
+                type: "string",
+                requiredChoiceGroup: true,
+                choiceGroup: 'groupId'
+            },
+
+            option2: {
+                type: "string",
+                requiredChoiceGroup: true,
+                choiceGroup: 'groupId'
+            },
+
+            option3: {
+                type: "string",
+                requiredChoiceGroup: true,
+                choiceGroup: 'groupId'
+            }
+        };
+
+        var object = { name: "Renato", age: 26 };
+        var messages = jsv.validate(object, schema, false);
+
+        test.equal(messages.length, 1);
+        test.done();
+    },
+
+    'Can use multiple choice groups 1': function(test) {
+        var schema = {
+            option1: {
+                type: "string",
+                requiredChoiceGroup: true,
+                choiceGroup: 'groupId1'
+            },
+
+            option2: {
+                type: "string",
+                requiredChoiceGroup: true,
+                choiceGroup: 'groupId1'
+            },
+
+            option3: {
+                type: "string",
+                requiredChoiceGroup: true,
+                choiceGroup: 'groupId1'
+            },
+
+            option4: {
+                type: "string",
+                requiredChoiceGroup: true,
+                choiceGroup: 'groupId2'
+            },
+
+            option5: {
+                type: "string",
+                requiredChoiceGroup: true,
+                choiceGroup: 'groupId2'
+            },
+        };
+
+        var object = { name: "Renato", age: 26 };
+        var messages = jsv.validate(object, schema, false);
+
+        test.equal(messages.length, 2);
+        test.done();
+    },
+
+    'Can use multiple choice groups 2': function(test) {
+        var schema = {
+            option1: {
+                type: "string",
+                requiredChoiceGroup: true,
+                choiceGroup: 'groupId1'
+            },
+
+            option2: {
+                type: "string",
+                requiredChoiceGroup: true,
+                choiceGroup: 'groupId1'
+            },
+
+            option3: {
+                type: "string",
+                requiredChoiceGroup: true,
+                choiceGroup: 'groupId1'
+            },
+
+            option4: {
+                type: "string",
+                requiredChoiceGroup: true,
+                choiceGroup: 'groupId2'
+            },
+
+            option5: {
+                type: "string",
+                requiredChoiceGroup: true,
+                choiceGroup: 'groupId2'
+            },
+        };
+
+        var object = { name: "Renato", age: 26, option5: 'ok' };
+        var messages = jsv.validate(object, schema, false);
+
+        test.equal(messages.length, 1);
+        test.done();
+    },
+
+    'Can use multiple choice groups 3': function(test) {
+        var schema = {
+            option1: {
+                type: "string",
+                requiredChoiceGroup: true,
+                choiceGroup: 'groupId1'
+            },
+
+            option2: {
+                type: "string",
+                requiredChoiceGroup: true,
+                choiceGroup: 'groupId1'
+            },
+
+            option3: {
+                type: "string",
+                requiredChoiceGroup: true,
+                choiceGroup: 'groupId1'
+            },
+
+            option4: {
+                type: "string",
+                requiredChoiceGroup: true,
+                choiceGroup: 'groupId2'
+            },
+
+            option5: {
+                type: "string",
+                requiredChoiceGroup: true,
+                choiceGroup: 'groupId2'
+            },
+        };
+
+        var object = { name: "Renato", age: 26, option5: 'ok', option2: 'ok' };
+        var messages = jsv.validate(object, schema, false);
+
+        test.equal(messages.length, 0);
+        test.done();
+    },
+
+    'Can have nested choice groups 1': function(test) {
+        var schema = {
+            venda: {
+                cliente: {
+                    required: true,
+                    cpf: {
+                        choiceGroup: 'identificacao',
+                        requiredChoiceGroup: true
+                    },
+
+                    cnpj: {
+                        choiceGroup: 'identificacao',
+                        requiredChoiceGroup: true
+                    }
+                }
+            }
+        };
+
+        var object = { venda: { cliente: { nome: 'Ciclano' } } };
+        var messages = jsv.validate(object, schema, false);
+
+        test.equal(messages.length, 1);
+        test.done();
+    },
+
+    'Can have nested choice groups 2': function(test) {
+        var schema = {
+            venda: {
+                cliente: {
+                    required: true,
+                    cpf: {
+                        choiceGroup: 'identificacao',
+                        requiredChoiceGroup: true
+                    },
+
+                    cnpj: {
+                        choiceGroup: 'identificacao',
+                        requiredChoiceGroup: true
+                    }
+                }
+            }
+        };
+
+        var object = { venda: { cliente: { cpf: 'ok' } } };
+        var messages = jsv.validate(object, schema, false);
+
+        test.equal(messages.length, 0);
+        test.done();
+    },
+
+    'Can have nested choice groups 2': function(test) {
+        var schema = {
+            venda: {
+                cliente: {
+                    required: true,
+                    cpf: {
+                        choiceGroup: 'identificacao',
+                        requiredChoiceGroup: true
+                    },
+
+                    cnpj: {
+                        choiceGroup: 'identificacao',
+                        requiredChoiceGroup: true
+                    }
+                }
+            }
+        };
+
+        var object = { venda: { cliente: { cnpj: 'ok' } } };
+        var messages = jsv.validate(object, schema, false);
+
+        test.equal(messages.length, 0);
+        test.done();
+    },
+
+    'If object is not required then its children are not validated': function(test) {
+        var schema = {
+            usuario: {
+                required: false,
+                nome: {
+                    required: true,
+                    type: 'string'
+                },
+                idade: {
+                    required: true,
+                    type: 'number'
+                }
+            }
+        };
+
+        var object = { };
+        var messages = jsv.validate(object, schema, false);
+
+        test.equal(messages.length, 0);
+        test.done();
+    },
+
+    "Throws no errors when debug message is invoked": function(test) {
+      var schema = {
+        name: { type: "string", willPrintDebugMessage: 123, required: true }
+      };
+
+      var object = { name: "Renato" };
+
+      test.ok(jsv.validate(object, schema, false).length === 0);
+      test.done();
+    },
+
+    'Can set custom validator functions': function (test) {
+      jsv.setCustomValidators({
+        isHappyString: function (param) {
+          return param === ':)'
+        }
+      });
+
+      var schema = {
+        theString: {
+          type: "string",
+          required: true,
+          isHappyString: true
+        }
+      };
+
+      var object1 = { theString: ":)" };
+      var object2 = { theString: ":(" };
+
+      test.ok(jsv.validate(object1, schema, false).length === 0);
+      test.ok(jsv.validate(object2, schema, false).length === 1);
+      test.done()
+    },
+
+    'Throws exception if tries to set custom validator function with name already in use': function (test) {
+      test.throws(function () {
+        jsv.setCustomValidators({
+          toNull: function () {
+            return null
+          }
+        });
+      })
+
+      test.done()
+    }
 };

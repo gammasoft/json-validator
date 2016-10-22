@@ -1,5 +1,6 @@
 var async = require('async'),
     traverse = require('traverse'),
+    printDebug = require('debug')('json-validator'),
     validator = require('validator'),
     utils = require('gammautils'),
     forEachOwnProperty = utils.object.forEachOwnProperty,
@@ -51,6 +52,16 @@ module.exports.setMessage = function(validator, message) {
     require('./matchers').validationMessages[validator] = message;
 };
 
+module.exports.setCustomValidators = function (validators) {
+  Object.keys(validators).forEach(function (customValidatorName) {
+    if(validator[customValidatorName]) {
+      throw new Error('Validator  "' + customValidatorName + '" alredy exists')
+    }
+
+    validator.extend(customValidatorName, validators[customValidatorName])
+  })
+}
+
 module.exports.validate = function(object, schema, optionals, debug, callback) {
     if(typeof object === 'string') {
         object = JSON.parse(object);
@@ -80,10 +91,15 @@ module.exports.validate = function(object, schema, optionals, debug, callback) {
         debug = false;
     }
 
-    return validate(object, schema, '', [], optionals, debug, callback);
+    var choiceGroups = {
+        requireds: [], // List of choice groups that are required
+        sets: {} // List of choice groups that were set
+    }; //should check sets x requireds and if any required was not set than add an error message
+
+    return validate(object, schema, '', [], optionals, choiceGroups, [], debug, callback);
 };
 
-function validate(object, _schema, path, messages, optionals, debug, callback) {
+function validate(object, _schema, path, messages, optionals, choiceGroups, escapePrefixes, debug, callback) {
     if(!Array.isArray(_schema)) {
         _schema = [_schema];
     }
@@ -112,7 +128,6 @@ function validate(object, _schema, path, messages, optionals, debug, callback) {
     });
 
     function fixArray(array, actualArray, path) {
-
         var times = actualArray.length;
 
         if(times === 0) {
@@ -137,8 +152,7 @@ function validate(object, _schema, path, messages, optionals, debug, callback) {
         return array;
     }
 
-    traverse(schema).forEach(function(node){
-
+    traverse(schema).forEach(function(node) {
         var matchersThatShouldNotContinue = [
             'enum', 'transform', 'validate'
         ];
@@ -171,16 +185,33 @@ function validate(object, _schema, path, messages, optionals, debug, callback) {
             return;
         }
 
+        var _objectPath = objectPath.join('.'),
+            shouldEscape = false;
+
+        shouldEscape = escapePrefixes.some(function (escapePrefix) {
+            return _objectPath.indexOf(escapePrefix) === 0;
+        });
+
+        if(shouldEscape) {
+            return;
+        }
+
         if( this.parent && //tem um pai e
             'required' in this.parent.node && //o pai tem "required" e
             this.parent.node['required'] === false && //o required do pai é falso e
             (objectValue === null || typeof objectValue === 'undefined')) {//o objeto corrente não foi fornecido
 
-            if(debug) {
-                console.log('Not required and null or undefined');
-            }
+            if('default' in this.parent.node) {
+                // Tem valor default, então continua
+            } else {
+                escapePrefixes.push(objectPath.join('.') + '.');
 
-            return; //nem continua
+                if(debug) {
+                    console.log('Not required and null or undefined');
+                }
+
+                return; //nem continua
+            }
         }
 
         //didn't find, parent is listed as optional and parent also was not found
@@ -194,8 +225,32 @@ function validate(object, _schema, path, messages, optionals, debug, callback) {
             matcherMethod = 'prevent';
         }
 
-        if(matchers[matcherMethod]) {
+        if(matcherMethod === 'requiredChoiceGroup') {
+            return;
+        }
 
+        if(matcherMethod === 'choiceGroup') {
+            var choiceGroupPath = objectPath.slice(0, -1).join('.') || 'root';
+
+            if(this.parent && this.parent.node && this.parent.node.requiredChoiceGroup === true) {
+                choiceGroups.requireds.push(choiceGroupPath + '|' + node);
+            }
+
+            if(choiceGroups.sets[choiceGroupPath] && choiceGroups.sets[choiceGroupPath][node] && typeof objectValue !== 'undefined') {
+                // O valor do grupo já havia sido informado anteriormente
+                return pushMessage(messages, matcherMethod, objectValue, objectPath.join('.'), params, messageObject, require('./matchers').validationMessages[matcherMethod]);
+            }
+
+            if(typeof objectValue !== 'undefined') {
+                if(!choiceGroups.sets[choiceGroupPath]) {
+                    choiceGroups.sets[choiceGroupPath] = {};
+                }
+
+                choiceGroups.sets[choiceGroupPath][node] = true
+            }
+        }
+
+        if(matchers[matcherMethod]) {
             if(matcherMethod === 'transform' && Array.isArray(node)) {
                 //we have multiple functions so we wrap them into a single function
                 //with underscore's compose
@@ -283,11 +338,25 @@ function validate(object, _schema, path, messages, optionals, debug, callback) {
                 object.set(objectPath, result);
             }
         } else {
-            console.warn("\x1B[1m\x1B[31mjson-validator:\x1B[22m\x1B[39m Warning: validator '" + matcherMethod + "' was not found. Skipping!");
+            printDebug("Warning: validator '" + matcherMethod + "' was not found. Skipping!");
         }
 
         if(debug) {
         	console.log(this.path.join(".") + "." + matcherMethod + " === " + node + " | " + objectValue + " >>> " + match);
+        }
+    });
+
+    var choiceGroupMessagesAdded = {};
+    choiceGroups.requireds.forEach(function (requiredGroup) {
+        var _requiredGroup = requiredGroup.split('|'),
+            groupPath = _requiredGroup[0],
+            groupId = _requiredGroup[1];
+
+        if(!choiceGroups.sets[groupPath] || !choiceGroups.sets[groupPath][groupId]) {
+            if(!choiceGroupMessagesAdded[requiredGroup]) {
+                choiceGroupMessagesAdded[requiredGroup] = true;
+                pushMessage(messages, 'requiredChoiceGroup', groupId, groupPath, [true], messageObject);
+            }
         }
     });
 
