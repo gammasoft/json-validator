@@ -27,6 +27,8 @@ module.exports.resetMessages = function() {
 	module.exports.validationMessages = validationMessagesBackup;
 }
 
+module.exports.customTransforms = {}
+
 function applyParametersToMessage(message, value, parameters) {
 	if(!Array.isArray(parameters)) {
 		return message;

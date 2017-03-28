@@ -236,6 +236,54 @@ module.exports = {
 		test.done();
 	},
 
+  "Arrays are optional even when there are required fields": function (test) {
+    var schema = {
+      people: [{
+        name: {
+          required: true,
+          type: 'string'
+        },
+
+        age: {
+          required: true,
+          type: 'number'
+        },
+
+        pets: [{
+          name: {
+            required: true,
+            type: 'string'
+          }
+        }]
+      }]
+    };
+
+    var object = {
+      people: [{
+        name: 'Fulano',
+        age: 18,
+        pets: [{
+          name: "Chevete"
+        }]
+      }, {
+        name: 'Ciclano',
+        age: 23,
+        pets: [{
+          name: "Adam"
+        }]
+      }, {
+        name: 'Beltrano',
+        age: 30
+      }]
+    };
+
+    var messages = jsv.validate(object, schema, ['pets'], false);
+
+    console.log(JSON.stringify(messages, null, 4))
+    test.ok(messages.length === 0);
+    test.done();
+  },
+
 	"Single test with custom validation function failing": function(test){
 		function mustContainMyName(name, path){
 			return {
@@ -2718,6 +2766,93 @@ module.exports = {
       test.done()
     },
 
+    "Can pass custom validators": function(test) {
+      var schema = {
+        name: {
+          type: "string",
+          addNine: true,
+          addSmile: true
+        }
+      };
+
+      jsv.setCustomTransforms({
+        addNine: function (value, valor) {
+          return valor + '9'
+        },
+
+        addSmile: function (value, valor) {
+          return valor + ' :)'
+        }
+      });
+
+      var object = { name: "Renato" };
+
+      test.ok(jsv.validate(object, schema, false).length === 0);
+
+      test.equal(object.name, 'Renato9 :)')
+      test.done();
+    },
+
+    "Can pass custom validators - 2": function(test) {
+      var schema = {
+        name: {
+          type: "string",
+          addSmile: true,
+          addNine: true
+        }
+      };
+
+      var object = { name: "Renato" };
+
+      test.ok(jsv.validate(object, schema, false).length === 0);
+
+      test.equal(object.name, 'Renato :)9')
+      test.done();
+    },
+
+    "Throw error if tries to add custom transform that already exists": function(test) {
+      var schema = {
+        name: {
+          type: "string",
+          addSmile: true,
+          addNine: true
+        }
+      };
+
+      test.throws(function () {
+        jsv.setCustomTransforms({
+          addNine: function (value, valor) {
+            return valor + '9'
+          }
+        })
+      })
+
+      test.done();
+    },
+
+    'Can set custom validator functions': function (test) {
+      jsv.setCustomValidators({
+        isHappyString: function (param) {
+          return param === ':)'
+        }
+      });
+
+      var schema = {
+        theString: {
+          type: "string",
+          required: true,
+          isHappyString: true
+        }
+      };
+
+      var object1 = { theString: ":)" };
+      var object2 = { theString: ":(" };
+
+      test.ok(jsv.validate(object1, schema, false).length === 0);
+      test.ok(jsv.validate(object2, schema, false).length === 1);
+      test.done()
+    },
+
     'Throws exception if tries to set custom validator function with name already in use': function (test) {
       test.throws(function () {
         jsv.setCustomValidators({
@@ -2728,5 +2863,20 @@ module.exports = {
       })
 
       test.done()
+    },
+
+    'Teste com array de nativos': function (test) {
+      var schema = {
+        valores: [{
+          type: "number"
+        }]
+      };
+
+      var objectOk = { valores: [1, 2, 3, 4] };
+      var objectFail = { valores: [1, 2, 'will fail', 4] };
+
+      test.equal(jsv.validate(objectOk, schema, false).length, 0);
+      test.equal(jsv.validate(objectFail, schema, false).length, 1);
+      test.done();
     }
 };

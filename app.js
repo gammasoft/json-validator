@@ -11,6 +11,7 @@ var async = require('async'),
 
     constants = require('./constants'),
     matchers = require('./matchers').matchers,
+    customTransforms = require('./matchers').customTransforms,
     pushMessage = require('./matchers').pushMessage;
 
 validator.extend('specificLengths', function(string) {
@@ -52,10 +53,20 @@ module.exports.setMessage = function(validator, message) {
     require('./matchers').validationMessages[validator] = message;
 };
 
+module.exports.setCustomTransforms = function (transforms) {
+  Object.keys(transforms).forEach(function (customTransformName) {
+    if(require('./matchers').customTransforms[customTransformName]) {
+      throw new Error('Transform  "' + customTransformName + '" already exists')
+    }
+
+    require('./matchers').customTransforms[customTransformName] = transforms[customTransformName]
+  })
+}
+
 module.exports.setCustomValidators = function (validators) {
   Object.keys(validators).forEach(function (customValidatorName) {
     if(validator[customValidatorName]) {
-      throw new Error('Validator  "' + customValidatorName + '" alredy exists')
+      throw new Error('Validator  "' + customValidatorName + '" already exists')
     }
 
     validator.extend(customValidatorName, validators[customValidatorName])
@@ -250,7 +261,7 @@ function validate(object, _schema, path, messages, optionals, choiceGroups, esca
             }
         }
 
-        if(matchers[matcherMethod]) {
+        if(matchers[matcherMethod] || customTransforms[matcherMethod]) {
             if(matcherMethod === 'transform' && Array.isArray(node)) {
                 //we have multiple functions so we wrap them into a single function
                 //with underscore's compose
@@ -280,7 +291,7 @@ function validate(object, _schema, path, messages, optionals, choiceGroups, esca
                 that.parent.node['skip'] = true;
             }
 
-            var match = matchers[matcherMethod].call(objectClone, node, objectValue, objectPath.join("."), messages, optionals, messageObject, preventNext);
+            var match = (matchers[matcherMethod] || customTransforms[matcherMethod]).call(objectClone, node, objectValue, objectPath.join("."), messages, optionals, messageObject, preventNext);
 
             if(matcherMethod === 'unset' && match === true) {
                 //unset returns true or false;
@@ -289,7 +300,7 @@ function validate(object, _schema, path, messages, optionals, choiceGroups, esca
                 deepDelete(object.value, objectPath)
             }
 
-            if(['transform', 'default'].indexOf(matcherMethod) > -1) {
+            if(['transform', 'default'].indexOf(matcherMethod) > -1 || customTransforms[matcherMethod]) {
             	//Aqui eu posso salvar o objectPath junto com o valor transformado,
             	//e depois só aplicar se não houverem mensagens.
                 //
